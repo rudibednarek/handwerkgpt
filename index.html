@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HandwerkGPT — KI-Büro für Handwerker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--navy:#1B2A4A;--navy2:#243559;--navy3:#0D1826;--amber:#E8A020;--amber2:#F5C96A;--white:#FFFFFF;--off:#F4F3EF;--gray:#8090A8;--gray2:#C8D2DF;--gray3:#E8ECF2;--green:#2D9E6B;--green2:#E8F7F0;--red:#E84040;--red2:#FEE8E8;--r:12px;--r2:8px;--sh:0 2px 16px rgba(27,42,74,.08);--sh2:0 8px 32px rgba(27,42,74,.14);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--off);color:var(--navy3);min-height:100vh;font-size:14.5px;}
+/* AUTH */
+.auth-screen{display:flex;min-height:100vh;align-items:center;justify-content:center;background:var(--navy3);}
+.auth-bg{position:fixed;inset:0;background:var(--navy3);overflow:hidden;z-index:0;}
+.auth-bg::before{content:'';position:absolute;width:600px;height:600px;border-radius:50%;background:radial-gradient(circle,rgba(232,160,32,.08),transparent 70%);top:-100px;right:-100px;}
+.auth-bg::after{content:'';position:absolute;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(232,160,32,.05),transparent 70%);bottom:-80px;left:-80px;}
+.auth-card{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:420px;box-shadow:var(--sh2);position:relative;z-index:1;}
+.auth-logo{display:flex;align-items:center;gap:10px;margin-bottom:28px;}
+.auth-logo-icon{width:42px;height:42px;background:var(--amber);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 4px 12px rgba(232,160,32,.35);}
+.auth-logo-name{font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:var(--navy);}
+.auth-logo-name span{color:var(--amber);}
+.auth-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.auth-sub{font-size:13.5px;color:var(--gray);margin-bottom:24px;}
+.fgroup{display:flex;flex-direction:column;gap:5px;margin-bottom:13px;}
+.flabel{font-size:11.5px;font-weight:600;color:var(--navy2);text-transform:uppercase;letter-spacing:.4px;}
+input,select,textarea{width:100%;padding:10px 13px;border:1.5px solid var(--gray2);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--navy3);background:var(--off);transition:all .15s;outline:none;appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--amber);background:#fff;box-shadow:0 0 0 3px rgba(232,160,32,.1);}
+textarea{resize:vertical;min-height:80px;}
+.btn-auth{width:100%;padding:12px;background:var(--navy);color:#fff;border:none;border-radius:9px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:4px;}
+.btn-auth:hover{background:var(--navy2);transform:translateY(-1px);}
+.btn-auth:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.auth-toggle{text-align:center;margin-top:16px;font-size:13px;color:var(--gray);}
+.auth-toggle a{color:var(--amber);cursor:pointer;font-weight:600;}
+.msg{padding:10px 13px;border-radius:8px;font-size:13px;margin-bottom:14px;display:none;}
+.msg-err{background:var(--red2);color:var(--red);}
+.msg-ok{background:var(--green2);color:var(--green);}
+/* APP */
+.app{display:none;min-height:100vh;}
+.sidebar{width:250px;flex-shrink:0;background:var(--navy3);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;}
+.logo{padding:22px 18px 16px;border-bottom:1px solid rgba(255,255,255,.06);}
+.logo-row{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:38px;height:38px;background:var(--amber);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 12px rgba(232,160,32,.35);}
+.logo-name{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#fff;letter-spacing:-.3px;}
+.logo-name span{color:var(--amber);}
+.logo-ver{font-size:10px;color:rgba(255,255,255,.28);letter-spacing:1px;margin-top:1px;}
+.nav{padding:14px 10px;flex:1;}
+.nav-lbl{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.22);font-weight:600;padding:10px 10px 4px;display:block;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:rgba(255,255,255,.48);cursor:pointer;font-size:13.5px;font-weight:400;transition:all .15s;border:none;background:transparent;width:100%;text-align:left;font-family:'DM Sans',sans-serif;position:relative;}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);}
+.nav-item.active{background:linear-gradient(90deg,rgba(232,160,32,.18),rgba(232,160,32,.06));color:var(--amber);font-weight:500;}
+.nav-item.active::before{content:'';position:absolute;left:0;top:5px;bottom:5px;width:3px;background:var(--amber);border-radius:0 3px 3px 0;}
+.nav-icon{font-size:16px;width:20px;text-align:center;}
+.nb{margin-left:auto;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:var(--green);color:#fff;}
+.sidebar-bottom{padding:12px 14px;border-top:1px solid rgba(255,255,255,.06);}
+.user-row{display:flex;align-items:center;gap:10px;padding:6px;border-radius:8px;}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--amber),var(--amber2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:var(--navy3);flex-shrink:0;}
+.user-email{font-size:11px;color:rgba(255,255,255,.45);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1;min-width:0;}
+.btn-logout{background:transparent;border:1.5px solid rgba(255,255,255,.15);color:rgba(255,255,255,.45);border-radius:7px;padding:4px 9px;font-size:11px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;}
+.btn-logout:hover{border-color:var(--red);color:var(--red);}
+.main{margin-left:250px;flex:1;display:flex;flex-direction:column;}
+.topbar{background:#fff;border-bottom:1px solid var(--gray3);padding:0 28px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.page-title{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--navy);}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.ai-pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--amber);background:rgba(232,160,32,.1);padding:4px 10px;border-radius:20px;border:1px solid rgba(232,160,32,.2);}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.content{padding:26px 28px;flex:1;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.btn-primary{background:var(--amber);color:var(--navy3);}
+.btn-primary:hover{background:#d4911a;transform:translateY(-1px);}
+.btn-navy{background:var(--navy);color:#fff;}
+.btn-navy:hover{background:var(--navy2);transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--gray);border:1.5px solid var(--gray2);}
+.btn-ghost:hover{border-color:var(--navy2);color:var(--navy);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:#248a5a;}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+/* CARDS */
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.card-header{padding:16px 20px 12px;border-bottom:1px solid var(--gray3);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-family:'Syne',sans-serif;font-size:14.5px;font-weight:700;color:var(--navy);}
+.card-body{padding:20px;}
+.card-footer{padding:12px 20px;border-top:1px solid var(--gray3);background:var(--off);display:flex;gap:8px;justify-content:flex-end;}
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:22px;}
+.stat{background:#fff;border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);cursor:pointer;transition:all .2s;border:1.5px solid transparent;}
+.stat:hover{border-color:var(--amber);transform:translateY(-2px);box-shadow:var(--sh2);}
+.stat-label{font-size:11px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
+.stat-value{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--navy);letter-spacing:-1px;line-height:1;}
+.stat-trend{font-size:11.5px;margin-top:5px;font-weight:500;color:var(--green);}
+/* GEWERK */
+.gewerk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.gb{padding:9px 6px;border:1.5px solid var(--gray2);border-radius:var(--r2);background:var(--off);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--gray);text-align:center;transition:all .15s;font-weight:500;}
+.gb:hover{border-color:var(--amber);color:var(--navy);}
+.gb.sel{border-color:var(--amber);background:rgba(232,160,32,.12);color:var(--amber);font-weight:600;}
+/* GENERATE BTN */
+.btn-gen{width:100%;padding:13px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;margin-top:14px;}
+.btn-gen:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(27,42,74,.3);}
+.btn-gen:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+/* OUTPUT */
+.out-panel{background:#fff;border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;max-height:780px;}
+.out-header{padding:15px 20px 12px;border-bottom:1px solid var(--gray3);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.out-scroll{overflow-y:auto;flex:1;padding:20px;}
+.out-footer{padding:12px 20px;border-top:1px solid var(--gray3);background:var(--off);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;}
+.sbadge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.sw{background:var(--gray3);color:var(--gray);}
+.sg{background:rgba(232,160,32,.15);color:var(--amber);}
+.sd{background:var(--green2);color:var(--green);}
+.se{background:var(--red2);color:var(--red);}
+.sdot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.sg .sdot,.sa .sdot{animation:pulse 1s infinite;}
+.ph{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;text-align:center;color:var(--gray);gap:10px;}
+.ph-icon{font-size:44px;opacity:.3;}
+.ph-txt{font-size:13.5px;max-width:220px;font-style:italic;}
+.sk{background:linear-gradient(90deg,#eee 25%,#f5f5f5 50%,#eee 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+/* OFFER */
+.offer-doc{font-size:13px;}
+.offer-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:2px solid var(--navy);}
+.offer-co{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--navy);}
+.offer-co-sub{font-size:11px;color:var(--gray);margin-top:2px;}
+.offer-stamp{background:var(--navy);color:var(--amber);font-family:'Syne',sans-serif;font-weight:700;font-size:11.5px;padding:5px 13px;border-radius:5px;}
+.meta-box{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;padding:11px 13px;background:var(--off);border-radius:8px;}
+.ml{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;font-weight:600;}
+.mv{font-size:13px;color:var(--navy3);font-weight:500;margin-top:1px;}
+.offer-intro{color:#555;margin-bottom:15px;font-size:13px;line-height:1.65;}
+.pos-tbl{width:100%;border-collapse:collapse;margin-bottom:15px;font-size:12.5px;}
+.pos-tbl th{background:var(--navy);color:rgba(255,255,255,.7);padding:7px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.4px;font-weight:700;}
+.pos-tbl th:nth-child(n+2){text-align:right;}
+.pos-tbl td{padding:8px 10px;border-bottom:1px solid var(--gray3);vertical-align:top;}
+.pos-tbl td:nth-child(n+2){text-align:right;white-space:nowrap;}
+.pos-tbl tr:nth-child(even) td{background:var(--off);}
+.totals{margin-left:auto;width:210px;margin-bottom:13px;}
+.trow{display:flex;justify-content:space-between;padding:5px 0;font-size:12.5px;color:var(--gray);border-bottom:1px solid var(--gray3);}
+.trow.grand{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--navy);border:none;padding-top:8px;}
+.offer-notes{font-size:11.5px;color:var(--gray);line-height:1.6;padding-top:11px;border-top:1px solid var(--gray3);}
+/* LIST ITEMS */
+.list-item{display:flex;align-items:center;gap:12px;padding:11px 15px;border-radius:var(--r2);border:1.5px solid var(--gray3);cursor:pointer;transition:all .15s;margin-bottom:7px;}
+.list-item:hover{border-color:var(--amber);background:rgba(232,160,32,.03);}
+.li-icon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.li-main{flex:1;min-width:0;}
+.li-title{font-weight:600;font-size:13.5px;color:var(--navy);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.li-sub{font-size:11.5px;color:var(--gray);margin-top:1px;}
+.li-right{text-align:right;flex-shrink:0;}
+.li-amount{font-weight:700;color:var(--navy);font-size:14.5px;}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;margin-top:3px;}
+.pg{background:var(--green2);color:var(--green);}
+.pa{background:rgba(232,160,32,.12);color:var(--amber);}
+.pn{background:var(--gray3);color:var(--gray);}
+/* API BANNER */
+.api-banner{background:rgba(232,160,32,.07);border:1.5px solid rgba(232,160,32,.22);border-radius:10px;padding:11px 15px;margin-bottom:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.api-banner input{flex:1;min-width:160px;background:#fff;font-size:13px;border-color:rgba(232,160,32,.4);padding:8px 12px;}
+/* PAGE VIEWS */
+.page{display:none;}
+.page.active{display:block;}
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy3);color:#fff;padding:12px 18px;border-radius:10px;font-size:13.5px;box-shadow:0 8px 32px rgba(0,0,0,.2);z-index:9999;transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;gap:10px;max-width:340px;}
+.toast.show{transform:translateY(0);opacity:1;}
+/* EMPTY */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 20px;text-align:center;color:var(--gray);}
+.empty-icon{font-size:44px;opacity:.3;margin-bottom:12px;}
+.empty-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--navy);margin-bottom:5px;}
+/* PROG */
+.prog-bar{height:5px;background:var(--gray3);border-radius:10px;overflow:hidden;margin:6px 0;}
+.prog-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--amber),var(--amber2));transition:width .5s;}
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--gray2);border-radius:10px;}
+@media(max-width:1100px){.stats-grid{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<!-- ══ AUTH ══════════════════════════════════════ -->
+<div class="auth-screen" id="authScreen">
+  <div class="auth-bg"></div>
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="auth-logo-icon">🔧</div>
+      <div class="auth-logo-name">Handwerk<span>GPT</span></div>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="loginView">
+      <div class="auth-title">Willkommen zurück</div>
+      <div class="auth-sub">Melde dich an um dein KI-Büro zu öffnen.</div>
+      <div class="msg msg-err" id="loginErr"></div>
+      <div class="fgroup">
+        <span class="flabel">E-Mail</span>
+        <input type="email" id="loginEmail" placeholder="max@musterbetrieb.de" onkeydown="if(event.key==='Enter')doLogin()" />
+      </div>
+      <div class="fgroup">
+        <span class="flabel">Passwort</span>
+        <input type="password" id="loginPw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()" />
+      </div>
+      <button class="btn-auth" onclick="doLogin()" id="loginBtn">Einloggen</button>
+      <div class="auth-toggle">Noch kein Konto? <a onclick="toggleAuth('signup')">Registrieren</a></div>
+    </div>
+
+    <!-- SIGNUP -->
+    <div id="signupView" style="display:none;">
+      <div class="auth-title">Beta-Zugang erhalten</div>
+      <div class="auth-sub">Kostenlos in der Beta-Phase — kein Abo nötig.</div>
+      <div class="msg msg-err" id="signupErr"></div>
+      <div class="msg msg-ok" id="signupOk"></div>
+      <div class="fgroup">
+        <span class="flabel">E-Mail</span>
+        <input type="email" id="signupEmail" placeholder="max@musterbetrieb.de" />
+      </div>
+      <div class="fgroup">
+        <span class="flabel">Passwort (min. 6 Zeichen)</span>
+        <input type="password" id="signupPw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doSignup()" />
+      </div>
+      <button class="btn-auth" onclick="doSignup()" id="signupBtn">Konto erstellen</button>
+      <div class="auth-toggle">Schon ein Konto? <a onclick="toggleAuth('login')">Einloggen</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ APP ════════════════════════════════════════ -->
+<div class="app" id="appScreen">
+
+  <aside class="sidebar">
+    <div class="logo">
+      <div class="logo-row">
+        <div class="logo-icon">🔧</div>
+        <div>
+          <div class="logo-name">Handwerk<span>GPT</span></div>
+          <div class="logo-ver">BETA · KOSTENLOS</div>
+        </div>
+      </div>
+    </div>
+    <nav class="nav">
+      <span class="nav-lbl">Werkzeuge</span>
+      <button class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">🏠</span>Dashboard</button>
+      <button class="nav-item" onclick="showPage('angebote',this)"><span class="nav-icon">📋</span>Neues Angebot<span class="nb">KI</span></button>
+      <button class="nav-item" onclick="showPage('gespeichert',this)"><span class="nav-icon">💾</span>Gespeicherte</button>
+      <span class="nav-lbl">Info</span>
+      <button class="nav-item" onclick="showPage('feedback',this)"><span class="nav-icon">💬</span>Feedback geben</button>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="user-row">
+        <div class="avatar" id="userAvatar">?</div>
+        <div class="user-email" id="userEmail">...</div>
+        <button class="btn-logout" onclick="doLogout()">Abmelden</button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="main">
+    <div class="topbar">
+      <div class="page-title" id="pageTitle">Dashboard</div>
+      <div class="topbar-right">
+        <div class="ai-pill"><div class="ai-dot"></div>KI-aktiv</div>
+        <button class="btn btn-primary" onclick="showPage('angebote',null)">+ Neues Angebot</button>
+      </div>
+    </div>
+
+    <div class="content">
+
+    <!-- ── DASHBOARD ── -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid">
+        <div class="stat"><div class="stat-label">Meine Angebote</div><div class="stat-value" id="dashTotal">0</div><div class="stat-trend">Gesamt generiert</div></div>
+        <div class="stat"><div class="stat-label">Diesen Monat</div><div class="stat-value" id="dashMonth">0</div><div class="stat-trend">Neue Angebote</div></div>
+        <div class="stat"><div class="stat-label">Letztes Angebot</div><div class="stat-value" id="dashLast" style="font-size:16px;letter-spacing:0;">—</div><div class="stat-trend" id="dashLastSub">Noch keines</div></div>
+        <div class="stat"><div class="stat-label">Zeit gespart (ca.)</div><div class="stat-value" id="dashTime">0 min</div><div class="stat-trend">vs. Word/Excel</div></div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">⚡ Schnellstart</div></div>
+          <div class="card-body" style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;">
+            <button class="btn btn-primary" style="width:100%;justify-content:flex-start;padding:11px 14px;" onclick="showPage('angebote',null)">📋 Neues KI-Angebot generieren</button>
+            <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;padding:11px 14px;" onclick="showPage('gespeichert',null)">💾 Gespeicherte Angebote ansehen</button>
+            <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;padding:11px 14px;" onclick="showPage('feedback',null)">💬 Feedback geben</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">🎉 Beta-Hinweis</div></div>
+          <div class="card-body" style="padding:14px 18px;">
+            <p style="font-size:13px;color:var(--gray);line-height:1.65;margin-bottom:10px;">Du bist Beta-Tester — danke! Du nutzt HandwerkGPT kostenlos. Im Gegenzug freuen wir uns über ehrliches Feedback.</p>
+            <p style="font-size:13px;color:var(--navy);font-weight:600;">Was funktioniert gut? Was fehlt?</p>
+            <p style="font-size:12px;color:var(--gray);margin-top:4px;">Klick auf "Feedback geben" oder schreib uns direkt.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header"><div class="card-title">🕐 Letzte Angebote</div></div>
+        <div class="card-body" style="padding:12px 16px;" id="dashList">
+          <div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Noch keine Angebote</div><p style="font-size:13px;color:var(--gray);">Erstelle dein erstes KI-Angebot.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ANGEBOTE ── -->
+    <div class="page" id="page-angebote">
+      <div class="api-banner">
+        <span style="font-size:12.5px;font-weight:700;color:var(--amber);white-space:nowrap;">🔑 Claude API-Key</span>
+        <input type="password" id="apiIn" placeholder="sk-ant-api03-..." />
+        <button class="btn btn-primary" style="font-size:12px;padding:7px 13px;" onclick="saveKey()">Verbinden</button>
+        <span id="apiStatus" style="font-size:12px;color:var(--gray);white-space:nowrap;">Nicht verbunden</span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+        <!-- FORM -->
+        <div class="card">
+          <div class="card-header"><div class="card-title">✦ Angebot generieren</div><div class="ai-pill"><div class="ai-dot"></div>Claude AI</div></div>
+          <div class="card-body">
+            <div class="fgroup" style="margin-bottom:12px;">
+              <span class="flabel">Gewerk</span>
+              <div class="gewerk-grid">
+                <button class="gb sel" onclick="selGew(this,'Elektro')">⚡ Elektro</button>
+                <button class="gb" onclick="selGew(this,'Sanitär')">🚿 Sanitär</button>
+                <button class="gb" onclick="selGew(this,'Maler')">🎨 Maler</button>
+                <button class="gb" onclick="selGew(this,'Schreiner')">🪵 Schreiner</button>
+                <button class="gb" onclick="selGew(this,'Dachdecker')">🏠 Dachdecker</button>
+                <button class="gb" onclick="selGew(this,'Heizung')">🔥 Heizung</button>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;">
+              <div class="fgroup"><span class="flabel">Kundenname</span><input id="fk" value="Familie Becker" /></div>
+              <div class="fgroup"><span class="flabel">Ort / PLZ</span><input id="fo" value="München, 80639" /></div>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;">
+              <div class="fgroup"><span class="flabel">Gebäude</span><select id="ft"><option>Einfamilienhaus</option><option>Wohnung</option><option>Mehrfamilienhaus</option><option>Gewerbe</option><option>Altbau</option></select></div>
+              <div class="fgroup"><span class="flabel">Fläche</span><input id="ff" value="120 qm" /></div>
+            </div>
+            <div class="fgroup" style="margin-bottom:9px;"><span class="flabel">Leistungsbeschreibung</span><textarea id="fb" style="min-height:85px;">Komplettsanierung der Elektroinstallation: Neue Unterverteilung, Leitungen in alle Räume, 20 Steckdosen, 15 Lichtschalter, alle Leitungen unter Putz.</textarea></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px;">
+              <div class="fgroup"><span class="flabel">Wunschtermin</span><input id="fte" value="Februar 2026" /></div>
+              <div class="fgroup"><span class="flabel">Besonderheiten</span><input id="fex" value="Altbau, bewohnt" /></div>
+            </div>
+            <button class="btn-gen" id="genBtn" onclick="genAngebot()">
+              <span class="spinner" id="genSpin"></span>
+              <span id="genIcon">✦</span>
+              <span id="genTxt">Angebot mit KI generieren</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- OUTPUT -->
+        <div class="out-panel">
+          <div class="out-header">
+            <div class="card-title">Vorschau</div>
+            <div class="sbadge sw" id="genBadge"><div class="sdot"></div><span id="genBadgeTxt">Bereit</span></div>
+          </div>
+          <div class="out-scroll" id="genOut">
+            <div class="ph" id="genPH"><div class="ph-icon">📄</div><div class="ph-txt">Formular ausfüllen und auf Generieren klicken — fertig in ~5 Sekunden.</div></div>
+            <div id="genSkel" style="display:none;">
+              <div class="sk" style="height:18px;width:55%;margin-bottom:16px;"></div>
+              <div class="sk" style="height:11px;margin-bottom:7px;"></div>
+              <div class="sk" style="height:11px;width:80%;margin-bottom:16px;"></div>
+              <div class="sk" style="height:90px;margin-bottom:13px;"></div>
+              <div class="sk" style="height:13px;width:38%;margin-left:auto;margin-bottom:5px;"></div>
+              <div class="sk" style="height:18px;width:44%;margin-left:auto;margin-top:7px;"></div>
+            </div>
+            <div class="offer-doc" id="genResult" style="display:none;"></div>
+          </div>
+          <div class="out-footer" id="genFoot" style="display:none;">
+            <button class="btn btn-ghost" onclick="copyOffer()">📋 Kopieren</button>
+            <button class="btn btn-green" id="saveBtn" onclick="saveAngebot()">💾 Speichern</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── GESPEICHERT ── -->
+    <div class="page" id="page-gespeichert">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">💾 Gespeicherte Angebote</div>
+          <button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="loadAngebote()">↻ Aktualisieren</button>
+        </div>
+        <div class="card-body" style="padding:12px 16px;" id="savedList">
+          <div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Noch keine gespeicherten Angebote</div><p style="font-size:13px;color:var(--gray);">Generiere ein Angebot und klicke "Speichern".</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── FEEDBACK ── -->
+    <div class="page" id="page-feedback">
+      <div class="card" style="max-width:560px;">
+        <div class="card-header"><div class="card-title">💬 Feedback geben</div></div>
+        <div class="card-body">
+          <p style="font-size:13.5px;color:var(--gray);margin-bottom:18px;line-height:1.65;">Dein ehrliches Feedback macht HandwerkGPT besser. Was funktioniert? Was fehlt? Was ist unklar?</p>
+          <div class="fgroup" style="margin-bottom:12px;">
+            <span class="flabel">Wie findest du HandwerkGPT bisher?</span>
+            <select id="fbRating">
+              <option value="">Bitte auswählen...</option>
+              <option value="super">⭐⭐⭐⭐⭐ Super, nutze ich regelmäßig</option>
+              <option value="gut">⭐⭐⭐⭐ Gut, aber fehlt noch etwas</option>
+              <option value="ok">⭐⭐⭐ OK, braucht Verbesserungen</option>
+              <option value="wenig">⭐⭐ Habe es kaum genutzt</option>
+            </select>
+          </div>
+          <div class="fgroup" style="margin-bottom:12px;">
+            <span class="flabel">Was funktioniert gut?</span>
+            <textarea id="fbGut" placeholder="z.B. Die Angebote sind sehr professionell..." style="min-height:80px;"></textarea>
+          </div>
+          <div class="fgroup" style="margin-bottom:12px;">
+            <span class="flabel">Was fehlt oder nervt?</span>
+            <textarea id="fbFehlt" placeholder="z.B. Ich möchte das Angebot direkt per WhatsApp schicken können..." style="min-height:80px;"></textarea>
+          </div>
+          <div class="fgroup" style="margin-bottom:16px;">
+            <span class="flabel">Würdest du 19-29€/Monat dafür zahlen?</span>
+            <select id="fbZahlen">
+              <option value="">Bitte auswählen...</option>
+              <option value="ja">Ja, auf jeden Fall</option>
+              <option value="vielleicht">Vielleicht, kommt auf Features an</option>
+              <option value="nein">Nein, zu teuer</option>
+              <option value="kostenlos">Nur wenn kostenlos</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" style="width:100%;" onclick="sendFeedback()">Feedback absenden</button>
+        </div>
+      </div>
+    </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /app -->
+
+<div class="toast" id="toastEl"><span id="toastMsg"></span></div>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  ⚙️  KONFIGURATION — NUR DIESE 2 WERTE ANPASSEN
+//  Supabase URL + Key aus: supabase.com > Settings > API
+// ═══════════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://ijbrblosuzqfohrvvkom.supabase.co';
+const SUPABASE_KEY  = 'sb_publishable_bqCMw4trmXzlCPx39zrorA_ZBmz8blM';
+// ═══════════════════════════════════════════════════════
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── STATE ──────────────────────────────────────
+let apiKey = '';
+let selGewerk = 'Elektro';
+let lastOffer = null;
+let currentUser = null;
+let allAngebote = [];
+
+// ── INIT ───────────────────────────────────────
+async function init() {
+  const { data: { session } } = await db.auth.getSession();
+  if (session?.user) { currentUser = session.user; showApp(); }
+  else showAuth();
+  db.auth.onAuthStateChange((_e, session) => {
+    if (session?.user) { currentUser = session.user; showApp(); }
+    else { currentUser = null; showAuth(); }
+  });
+}
+
+function showApp() {
+  document.getElementById('authScreen').style.display = 'none';
+  const app = document.getElementById('appScreen');
+  app.style.display = 'flex';
+  const email = currentUser?.email || '';
+  document.getElementById('userEmail').textContent = email;
+  document.getElementById('userAvatar').textContent = email.charAt(0).toUpperCase() || '?';
+  loadAngebote();
+}
+
+function showAuth() {
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('appScreen').style.display = 'none';
+}
+
+// ── AUTH ACTIONS ───────────────────────────────
+function toggleAuth(view) {
+  document.getElementById('loginView').style.display = view === 'login' ? 'block' : 'none';
+  document.getElementById('signupView').style.display = view === 'signup' ? 'block' : 'none';
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPw').value;
+  const errEl = document.getElementById('loginErr');
+  const btn   = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+  if (!email || !pw) { showMsg(errEl, 'Bitte E-Mail und Passwort eingeben.'); return; }
+  btn.disabled = true; btn.textContent = 'Einloggen...';
+  const { error } = await db.auth.signInWithPassword({ email, password: pw });
+  btn.disabled = false; btn.textContent = 'Einloggen';
+  if (error) showMsg(errEl, fehlerText(error.message));
+}
+
+async function doSignup() {
+  const email = document.getElementById('signupEmail').value.trim();
+  const pw    = document.getElementById('signupPw').value;
+  const errEl = document.getElementById('signupErr');
+  const okEl  = document.getElementById('signupOk');
+  const btn   = document.getElementById('signupBtn');
+  errEl.style.display = 'none'; okEl.style.display = 'none';
+  if (!email || !pw) { showMsg(errEl, 'Bitte E-Mail und Passwort eingeben.'); return; }
+  if (pw.length < 6) { showMsg(errEl, 'Passwort muss mindestens 6 Zeichen haben.'); return; }
+  btn.disabled = true; btn.textContent = 'Erstelle Konto...';
+  const { error } = await db.auth.signUp({ email, password: pw });
+  btn.disabled = false; btn.textContent = 'Konto erstellen';
+  if (error) { showMsg(errEl, fehlerText(error.message)); return; }
+  showMsg(okEl, '✅ Konto erstellt! Bitte E-Mail bestätigen, dann einloggen.');
+}
+
+async function doLogout() {
+  await db.auth.signOut();
+  toast('👋 Abgemeldet');
+}
+
+function fehlerText(msg) {
+  if (msg.includes('Invalid login')) return 'E-Mail oder Passwort falsch.';
+  if (msg.includes('Email not confirmed')) return 'Bitte erst die Bestätigungs-E-Mail klicken.';
+  if (msg.includes('already registered')) return 'Diese E-Mail ist bereits registriert.';
+  return msg;
+}
+
+function showMsg(el, txt) { el.textContent = txt; el.style.display = 'block'; }
+
+// ── NAVIGATION ─────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const titles = { dashboard: 'Dashboard', angebote: 'Neues Angebot', gespeichert: 'Gespeicherte Angebote', feedback: 'Feedback' };
+  document.getElementById('pageTitle').textContent = titles[name] || name;
+  if (name === 'gespeichert') loadAngebote();
+  if (name === 'dashboard') updateDashboard();
+}
+
+// ── API KEY ────────────────────────────────────
+function saveKey() {
+  const v = document.getElementById('apiIn').value.trim();
+  if (!v) { toast('⚠️ Bitte API-Key eingeben'); return; }
+  apiKey = v;
+  const el = document.getElementById('apiStatus');
+  el.textContent = '✅ Verbunden'; el.style.color = 'var(--green)';
+  toast('🔑 API-Key gespeichert — KI bereit!');
+}
+
+// ── GEWERK ─────────────────────────────────────
+function selGew(btn, gew) {
+  document.querySelectorAll('.gb').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  selGewerk = gew;
+}
+
+// ── GENERATE ───────────────────────────────────
+async function genAngebot() {
+  if (!apiKey) { toast('🔑 Bitte zuerst Claude API-Key eingeben'); return; }
+  const k  = document.getElementById('fk').value || 'Kunde';
+  const o  = document.getElementById('fo').value || '';
+  const t  = document.getElementById('ft').value || '';
+  const f  = document.getElementById('ff').value || '';
+  const b  = document.getElementById('fb').value || '';
+  const te = document.getElementById('fte').value || '';
+  const ex = document.getElementById('fex').value || '';
+
+  setGenUI('loading');
+
+  const today = new Date().toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+  const valid = new Date(Date.now() + 30 * 864e5).toLocaleDateString('de-DE', { day: '2-digit', month: 'long', year: 'numeric' });
+  const nr = 'ANG-' + new Date().getFullYear() + '-' + String(Math.floor(Math.random() * 900 + 100));
+
+  const prompt = `Du bist ein erfahrener Handwerksmeister. Erstelle ein professionelles Handwerksangebot.
+Gewerk: ${selGewerk} | Kunde: ${k} (${o}) | Gebaeude: ${t}, ${f}
+Leistung: ${b} | Termin: ${te} | Besonderheiten: ${ex}
+Datum: ${today} | Gueltig bis: ${valid} | Nr.: ${nr}
+Antworte NUR mit diesem JSON (kein Text, kein Markdown):
+{"nr":"${nr}","datum":"${today}","gueltig":"${valid}","kunde":"${k}","ort":"${o}","intro":"2-3 professionelle Einleitungssaetze","positionen":[{"pos":"1","beschr":"Leistung","detail":"Details","menge":"Zahl Einheit","einzel":Zahl,"gesamt":Zahl}],"netto":Zahl,"mwst":Zahl,"brutto":Zahl,"hinweise":"Gewaehrleistung 5 Jahre VOB. Zahlung: 50% Anzahlung, Rest nach Abnahme."}
+Erstelle 4-6 realistische Positionen mit marktüblichen Preisen fuer ${o || 'Deutschland'}.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      body: JSON.stringify({ model: 'claude-sonnet-4-5-20250929', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
+    });
+    if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || 'HTTP ' + res.status); }
+    const data = await res.json();
+    const raw = data.content?.[0]?.text || '';
+    const match = raw.match(/\{[\s\S]*\}/);
+    if (!match) throw new Error('Kein JSON in der Antwort');
+    lastOffer = JSON.parse(match[0]);
+    renderOffer(lastOffer);
+    setGenUI('done');
+    toast('✅ Angebot generiert!');
+  } catch (err) {
+    setGenUI('error');
+    toast('❌ ' + (err.message || 'Fehler beim Generieren'));
+    console.error(err);
+  }
+}
+
+function setGenUI(state) {
+  const btn  = document.getElementById('genBtn');
+  const spin = document.getElementById('genSpin');
+  const icon = document.getElementById('genIcon');
+  const txt  = document.getElementById('genTxt');
+  const ph   = document.getElementById('genPH');
+  const sk   = document.getElementById('genSkel');
+  const res  = document.getElementById('genResult');
+  const foot = document.getElementById('genFoot');
+  const badge = document.getElementById('genBadge');
+  const badgeTxt = document.getElementById('genBadgeTxt');
+
+  ph.style.display = 'none'; sk.style.display = 'none'; res.style.display = 'none'; foot.style.display = 'none';
+  btn.disabled = (state === 'loading');
+  spin.style.display = (state === 'loading') ? 'block' : 'none';
+  icon.style.display = (state === 'loading') ? 'none' : 'inline';
+
+  if (state === 'loading') {
+    txt.textContent = 'KI generiert...'; sk.style.display = 'block';
+    badge.className = 'sbadge sg'; badgeTxt.textContent = 'Generiere...';
+  } else if (state === 'done') {
+    txt.textContent = 'Neues Angebot generieren'; res.style.display = 'block'; foot.style.display = 'flex';
+    badge.className = 'sbadge sd'; badgeTxt.textContent = 'Fertig';
+    document.getElementById('saveBtn').disabled = false;
+    document.getElementById('saveBtn').textContent = '💾 Speichern';
+  } else if (state === 'error') {
+    txt.textContent = 'Erneut versuchen'; ph.style.display = 'flex';
+    badge.className = 'sbadge se'; badgeTxt.textContent = 'Fehler';
+  } else {
+    txt.textContent = 'Angebot mit KI generieren'; ph.style.display = 'flex';
+    badge.className = 'sbadge sw'; badgeTxt.textContent = 'Bereit';
+  }
+}
+
+function renderOffer(a) {
+  const rows = (a.positionen || []).map(p => `
+    <tr>
+      <td><div style="font-weight:600;color:var(--navy3);">${esc(p.beschr)}</div><div style="font-size:11px;color:var(--gray);margin-top:2px;">${esc(p.detail || '')}</div></td>
+      <td>${esc(String(p.menge || ''))}</td>
+      <td>${fmtEur(p.einzel)}</td>
+      <td style="font-weight:600;">${fmtEur(p.gesamt)}</td>
+    </tr>`).join('');
+
+  document.getElementById('genResult').innerHTML = `
+    <div class="offer-doc">
+      <div class="offer-head">
+        <div><div class="offer-co">${esc(selGewerk)}betrieb — ${esc(a.ort || '')}</div><div class="offer-co-sub">Professioneller Handwerksbetrieb</div></div>
+        <div class="offer-stamp">ANGEBOT</div>
+      </div>
+      <div class="meta-box">
+        <div><div class="ml">Angebotsnr.</div><div class="mv">${esc(a.nr || '')}</div></div>
+        <div><div class="ml">Datum</div><div class="mv">${esc(a.datum || '')}</div></div>
+        <div><div class="ml">Auftraggeber</div><div class="mv">${esc(a.kunde || '')}</div></div>
+        <div><div class="ml">Gültig bis</div><div class="mv">${esc(a.gueltig || '')}</div></div>
+      </div>
+      <p class="offer-intro">${esc(a.intro || '')}</p>
+      <table class="pos-tbl">
+        <thead><tr><th style="text-align:left;">Leistung</th><th>Menge</th><th>Einzelpreis</th><th>Gesamt</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div class="totals">
+        <div class="trow"><span>Nettobetrag</span><span>${fmtEur(a.netto)}</span></div>
+        <div class="trow"><span>MwSt. 19%</span><span>${fmtEur(a.mwst)}</span></div>
+        <div class="trow grand"><span>Gesamtbetrag</span><span>${fmtEur(a.brutto)}</span></div>
+      </div>
+      <div class="offer-notes"><strong>Hinweise:</strong> ${esc(a.hinweise || '')}</div>
+    </div>`;
+}
+
+// ── SAVE ───────────────────────────────────────
+async function saveAngebot() {
+  if (!lastOffer || !currentUser) return;
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.disabled = true; saveBtn.textContent = 'Speichert...';
+
+  const { error } = await db.from('angebote').insert({
+    user_id:      currentUser.id,
+    kunde:        lastOffer.kunde || '',
+    gewerk:       selGewerk,
+    ort:          lastOffer.ort || '',
+    beschreibung: document.getElementById('fb').value || '',
+    angebot_json: lastOffer,
+    brutto:       lastOffer.brutto || 0,
+    status:       'neu'
+  });
+
+  if (error) {
+    toast('❌ Fehler beim Speichern: ' + error.message);
+    saveBtn.disabled = false; saveBtn.textContent = '💾 Speichern';
+    return;
+  }
+
+  saveBtn.textContent = '✅ Gespeichert';
+  toast('💾 Angebot gespeichert!');
+  loadAngebote();
+}
+
+// ── LOAD ANGEBOTE ──────────────────────────────
+async function loadAngebote() {
+  if (!currentUser) return;
+  const { data, error } = await db.from('angebote')
+    .select('*')
+    .eq('user_id', currentUser.id)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  if (error) { console.error(error); return; }
+  allAngebote = data || [];
+  renderSavedList();
+  updateDashboard();
+}
+
+function renderSavedList() {
+  const list = document.getElementById('savedList');
+  if (!allAngebote.length) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Noch keine gespeicherten Angebote</div><p style="font-size:13px;color:var(--gray);">Generiere ein Angebot und klicke "Speichern".</p></div>';
+    return;
+  }
+  const gewerkEmoji = { 'Elektro': '⚡', 'Sanitär': '🚿', 'Maler': '🎨', 'Schreiner': '🪵', 'Dachdecker': '🏠', 'Heizung': '🔥' };
+  const gewerkColor = { 'Elektro': 'rgba(232,160,32,.1)', 'Sanitär': '#E8F0FE', 'Maler': 'rgba(232,100,32,.1)', 'Schreiner': 'rgba(160,100,32,.1)', 'Dachdecker': 'var(--gray3)', 'Heizung': 'var(--red2)' };
+
+  list.innerHTML = allAngebote.map(a => {
+    const date = new Date(a.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short', year: 'numeric' });
+    const emoji = gewerkEmoji[a.gewerk] || '🔧';
+    const bg = gewerkColor[a.gewerk] || 'var(--gray3)';
+    return `
+      <div class="list-item">
+        <div class="li-icon" style="background:${bg};">${emoji}</div>
+        <div class="li-main">
+          <div class="li-title">${esc(a.kunde)} — ${esc(a.gewerk)}arbeiten</div>
+          <div class="li-sub">KI generiert · ${date} · ${esc(a.ort || '')}</div>
+        </div>
+        <div class="li-right">
+          <div class="li-amount">${fmtEur(a.brutto)}</div>
+          <div class="pill ${a.status === 'angenommen' ? 'pg' : a.status === 'abgelehnt' ? '' : 'pa'}">${a.status === 'angenommen' ? 'Angenommen' : a.status === 'abgelehnt' ? 'Abgelehnt' : 'Neu'}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function updateDashboard() {
+  const total = allAngebote.length;
+  const now = new Date();
+  const month = allAngebote.filter(a => {
+    const d = new Date(a.created_at);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+
+  document.getElementById('dashTotal').textContent = total;
+  document.getElementById('dashMonth').textContent = month;
+
+  const zeitMins = total * 25;
+  document.getElementById('dashTime').textContent = zeitMins >= 60 ? (zeitMins / 60).toFixed(1) + 'h' : zeitMins + ' min';
+
+  if (allAngebote.length > 0) {
+    const last = allAngebote[0];
+    const d = new Date(last.created_at);
+    document.getElementById('dashLast').textContent = d.toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+    document.getElementById('dashLastSub').textContent = esc(last.kunde) || 'Unbekannt';
+  }
+
+  // Dashboard list (last 5)
+  const dashList = document.getElementById('dashList');
+  if (!allAngebote.length) {
+    dashList.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Noch keine Angebote</div><p style="font-size:13px;color:var(--gray);">Erstelle dein erstes KI-Angebot.</p></div>';
+    return;
+  }
+  const gewerkEmoji = { 'Elektro': '⚡', 'Sanitär': '🚿', 'Maler': '🎨', 'Schreiner': '🪵', 'Dachdecker': '🏠', 'Heizung': '🔥' };
+  dashList.innerHTML = allAngebote.slice(0, 5).map(a => {
+    const date = new Date(a.created_at).toLocaleDateString('de-DE', { day: '2-digit', month: 'short' });
+    return `
+      <div class="list-item">
+        <div class="li-icon" style="background:rgba(232,160,32,.1);color:var(--amber);">${gewerkEmoji[a.gewerk] || '🔧'}</div>
+        <div class="li-main">
+          <div class="li-title">${esc(a.kunde)} — ${esc(a.gewerk)}</div>
+          <div class="li-sub">${date} · ${esc(a.ort || '')}</div>
+        </div>
+        <div class="li-right"><div class="li-amount">${fmtEur(a.brutto)}</div></div>
+      </div>`;
+  }).join('');
+}
+
+// ── FEEDBACK ───────────────────────────────────
+async function sendFeedback() {
+  const rating  = document.getElementById('fbRating').value;
+  const gut     = document.getElementById('fbGut').value;
+  const fehlt   = document.getElementById('fbFehlt').value;
+  const zahlen  = document.getElementById('fbZahlen').value;
+
+  if (!rating) { toast('⚠️ Bitte Bewertung auswählen'); return; }
+
+  // Speichere Feedback in Supabase (optionale Tabelle)
+  // Falls die Tabelle nicht existiert, logge es einfach
+  try {
+    await db.from('feedback').insert({
+      user_id: currentUser?.id,
+      rating, gut, fehlt, zahlen
+    });
+  } catch (e) {
+    // Feedback-Tabelle noch nicht angelegt — kein Problem
+    console.log('Feedback (lokal):', { rating, gut, fehlt, zahlen });
+  }
+
+  toast('🙏 Danke für dein Feedback!');
+  document.getElementById('fbRating').value = '';
+  document.getElementById('fbGut').value = '';
+  document.getElementById('fbFehlt').value = '';
+  document.getElementById('fbZahlen').value = '';
+}
+
+// ── COPY ───────────────────────────────────────
+function copyOffer() {
+  const el = document.getElementById('genResult');
+  navigator.clipboard.writeText(el.innerText || '').then(() => toast('📋 Angebot kopiert!')).catch(() => toast('❌ Kopieren fehlgeschlagen'));
+}
+
+// ── TOAST ──────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toastEl');
+  document.getElementById('toastMsg').textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+// ── HELPERS ────────────────────────────────────
+function fmtEur(n) {
+  if (n == null) return '—';
+  return Number(n).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' €';
+}
+function esc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+// ── START ──────────────────────────────────────
+init();
+</script>
+</body>
+</html>
