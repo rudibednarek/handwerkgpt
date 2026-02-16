@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HandwerkGPT v2 — KI-Büro für Handwerker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#1B2A4A; --navy2:#243559; --navy3:#0D1826;
+  --amber:#E8A020; --amber2:#F5C96A; --amber3:#FDE8B0;
+  --white:#FFFFFF; --off:#F4F3EF; --off2:#ECEAE3;
+  --gray:#8090A8; --gray2:#C8D2DF; --gray3:#E8ECF2;
+  --green:#2D9E6B; --green2:#E8F7F0;
+  --red:#E84040; --red2:#FEE8E8;
+  --blue:#3B7DD8; --blue2:#E8F0FE;
+  --r:12px; --r2:8px;
+  --sh:0 2px 16px rgba(27,42,74,.08);
+  --sh2:0 8px 32px rgba(27,42,74,.14);
+  --sh3:0 20px 60px rgba(27,42,74,.2);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--off);color:var(--navy3);min-height:100vh;font-size:14.5px;line-height:1.65;overflow-x:hidden;}
+.app{display:flex;min-height:100vh;}
+
+/* SIDEBAR */
+.sidebar{width:250px;flex-shrink:0;background:var(--navy3);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:200;}
+.logo{padding:22px 18px 16px;border-bottom:1px solid rgba(255,255,255,.06);}
+.logo-row{display:flex;align-items:center;gap:10px;}
+.logo-icon{width:38px;height:38px;background:var(--amber);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;box-shadow:0 4px 12px rgba(232,160,32,.35);}
+.logo-name{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:#fff;letter-spacing:-.3px;}
+.logo-name span{color:var(--amber);}
+.logo-ver{font-size:10px;color:rgba(255,255,255,.28);letter-spacing:1px;margin-top:1px;}
+.nav{padding:14px 10px;flex:1;overflow-y:auto;}
+.nav-label{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,.22);font-weight:600;padding:10px 10px 4px;display:block;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:rgba(255,255,255,.48);cursor:pointer;font-size:13.5px;font-weight:400;transition:all .15s;border:none;background:transparent;width:100%;text-align:left;font-family:'DM Sans',sans-serif;position:relative;}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);}
+.nav-item.active{background:linear-gradient(90deg,rgba(232,160,32,.18),rgba(232,160,32,.06));color:var(--amber);font-weight:500;}
+.nav-item.active::before{content:'';position:absolute;left:0;top:5px;bottom:5px;width:3px;background:var(--amber);border-radius:0 3px 3px 0;}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;}
+.nb-amber{background:var(--amber);color:var(--navy3);}
+.nb-green{background:var(--green);color:#fff;}
+.sidebar-bottom{padding:12px 14px;border-top:1px solid rgba(255,255,255,.06);}
+.user-row{display:flex;align-items:center;gap:10px;padding:6px;border-radius:8px;cursor:pointer;transition:background .15s;}
+.user-row:hover{background:rgba(255,255,255,.05);}
+.avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--amber),var(--amber2));display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:var(--navy3);flex-shrink:0;}
+.user-name{font-size:12.5px;font-weight:500;color:#fff;}
+.user-plan{font-size:11px;color:var(--gray);}
+.online-dot{width:8px;height:8px;border-radius:50%;background:var(--green);margin-left:auto;box-shadow:0 0 0 2px rgba(45,158,107,.3);}
+
+/* MAIN */
+.main{margin-left:250px;flex:1;display:flex;flex-direction:column;}
+.topbar{background:#fff;border-bottom:1px solid var(--gray3);padding:0 30px;height:60px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.page-title{font-family:'Syne',sans-serif;font-weight:700;font-size:18px;color:var(--navy);letter-spacing:-.3px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.ai-pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;color:var(--amber);background:rgba(232,160,32,.1);padding:4px 10px;border-radius:20px;border:1px solid rgba(232,160,32,.2);}
+.ai-dot{width:6px;height:6px;border-radius:50%;background:var(--amber);animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.5;transform:scale(.7);}}
+.content{padding:26px 30px;flex:1;}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap;text-decoration:none;}
+.btn-primary{background:var(--amber);color:var(--navy3);}
+.btn-primary:hover{background:#d4911a;transform:translateY(-1px);box-shadow:0 4px 14px rgba(232,160,32,.35);}
+.btn-navy{background:var(--navy);color:#fff;}
+.btn-navy:hover{background:var(--navy2);transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--gray);border:1.5px solid var(--gray2);}
+.btn-ghost:hover{border-color:var(--navy2);color:var(--navy);}
+.btn-green{background:var(--green);color:#fff;}
+.btn-green:hover{background:#248a5a;transform:translateY(-1px);}
+.btn-red{background:var(--red);color:#fff;}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none!important;}
+
+/* CARDS */
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;}
+.card-header{padding:16px 20px 12px;border-bottom:1px solid var(--gray3);display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.card-title{font-family:'Syne',sans-serif;font-size:14.5px;font-weight:700;color:var(--navy);}
+.card-body{padding:20px;}
+.card-footer{padding:12px 20px;border-top:1px solid var(--gray3);background:var(--off);display:flex;align-items:center;justify-content:flex-end;gap:8px;}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:22px;}
+.stat{background:#fff;border-radius:var(--r);padding:16px 18px;box-shadow:var(--sh);cursor:pointer;transition:all .2s;border:1.5px solid transparent;}
+.stat:hover{border-color:var(--amber);transform:translateY(-2px);box-shadow:var(--sh2);}
+.stat-label{font-size:11px;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px;}
+.stat-value{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--navy);letter-spacing:-1px;line-height:1;}
+.stat-trend{font-size:11.5px;margin-top:5px;font-weight:500;}
+.up{color:var(--green);}
+.warn{color:var(--red);}
+.neutral{color:var(--gray);}
+
+/* FORMS */
+.form-row{display:grid;gap:11px;}
+.g2{grid-template-columns:1fr 1fr;}
+.g3{grid-template-columns:1fr 1fr 1fr;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.full{grid-column:1/-1;}
+label,.lbl{font-size:11.5px;font-weight:600;color:var(--navy2);text-transform:uppercase;letter-spacing:.4px;}
+input,select,textarea{width:100%;padding:9px 12px;border:1.5px solid var(--gray2);border-radius:var(--r2);font-family:'DM Sans',sans-serif;font-size:14px;color:var(--navy3);background:var(--off);transition:all .15s;outline:none;appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--amber);background:#fff;box-shadow:0 0 0 3px rgba(232,160,32,.1);}
+textarea{resize:vertical;min-height:75px;}
+
+/* GEWERK */
+.gewerk-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
+.gb{padding:9px 6px;border:1.5px solid var(--gray2);border-radius:var(--r2);background:var(--off);cursor:pointer;font-family:'DM Sans',sans-serif;font-size:12px;color:var(--gray);text-align:center;transition:all .15s;font-weight:500;}
+.gb:hover{border-color:var(--amber);color:var(--navy);background:rgba(232,160,32,.06);}
+.gb.sel{border-color:var(--amber);background:rgba(232,160,32,.12);color:var(--amber);font-weight:600;}
+
+/* GENERATE BTN */
+.btn-gen{width:100%;padding:13px;background:linear-gradient(135deg,var(--navy),var(--navy2));color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:all .2s;margin-top:14px;}
+.btn-gen:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 8px 28px rgba(27,42,74,.3);}
+.btn-gen:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.spinner{width:18px;height:18px;border:2.5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* STATUS */
+.sbadge{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.sw{background:var(--gray3);color:var(--gray);}
+.sg{background:rgba(232,160,32,.15);color:var(--amber);}
+.sd{background:var(--green2);color:var(--green);}
+.se{background:var(--red2);color:var(--red);}
+.sdot{width:6px;height:6px;border-radius:50%;background:currentColor;}
+.sg .sdot{animation:pulse 1s infinite;}
+
+/* OUTPUT */
+.out-panel{background:#fff;border-radius:var(--r);box-shadow:var(--sh);display:flex;flex-direction:column;max-height:800px;}
+.out-header{padding:15px 20px 12px;border-bottom:1px solid var(--gray3);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.out-scroll{overflow-y:auto;flex:1;padding:20px;}
+.out-footer{padding:12px 20px;border-top:1px solid var(--gray3);background:var(--off);display:flex;gap:8px;justify-content:flex-end;flex-shrink:0;}
+
+/* PLACEHOLDER */
+.ph{display:flex;flex-direction:column;align-items:center;justify-content:center;height:320px;text-align:center;color:var(--gray);gap:10px;}
+.ph-icon{font-size:44px;opacity:.3;}
+.ph-txt{font-size:13.5px;max-width:220px;font-style:italic;line-height:1.5;}
+
+/* SKELETON */
+.sk{background:linear-gradient(90deg,#eee 25%,#f5f5f5 50%,#eee 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;border-radius:6px;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
+
+/* OFFER DOC */
+.offer-doc{font-size:13px;}
+.offer-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;padding-bottom:16px;border-bottom:2px solid var(--navy);}
+.offer-co{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;color:var(--navy);}
+.offer-co-sub{font-size:11px;color:var(--gray);margin-top:2px;}
+.offer-stamp{background:var(--navy);color:var(--amber);font-family:'Syne',sans-serif;font-weight:700;font-size:11.5px;padding:5px 13px;border-radius:5px;letter-spacing:.5px;}
+.meta-box{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;padding:11px 13px;background:var(--off);border-radius:8px;}
+.ml{font-size:10px;color:var(--gray);text-transform:uppercase;letter-spacing:.4px;font-weight:600;}
+.mv{font-size:13px;color:var(--navy3);font-weight:500;margin-top:1px;}
+.offer-intro{color:#555;margin-bottom:15px;line-height:1.65;font-size:13px;}
+.pos-tbl{width:100%;border-collapse:collapse;margin-bottom:15px;font-size:12.5px;}
+.pos-tbl th{background:var(--navy);color:rgba(255,255,255,.7);padding:7px 10px;font-size:10px;text-transform:uppercase;letter-spacing:.4px;font-weight:700;}
+.pos-tbl th:nth-child(2),.pos-tbl th:nth-child(3),.pos-tbl th:nth-child(4){text-align:right;}
+.pos-tbl td{padding:8px 10px;border-bottom:1px solid var(--gray3);vertical-align:top;}
+.pos-tbl td:nth-child(2),.pos-tbl td:nth-child(3),.pos-tbl td:nth-child(4){text-align:right;white-space:nowrap;}
+.pos-tbl tr:nth-child(even) td{background:var(--off);}
+.pd{font-weight:500;color:var(--navy3);}
+.pdet{font-size:11px;color:var(--gray);margin-top:1px;}
+.totals{margin-left:auto;width:210px;margin-bottom:13px;}
+.trow{display:flex;justify-content:space-between;padding:5px 0;font-size:12.5px;color:var(--gray);border-bottom:1px solid var(--gray3);}
+.trow.grand{font-family:'Syne',sans-serif;font-size:15px;font-weight:800;color:var(--navy);border:none;padding-top:8px;}
+.offer-notes{font-size:11.5px;color:var(--gray);line-height:1.6;padding-top:11px;border-top:1px solid var(--gray3);}
+.offer-notes strong{color:var(--navy3);}
+
+/* LIST ITEMS */
+.list-item{display:flex;align-items:center;gap:12px;padding:11px 15px;border-radius:var(--r2);border:1.5px solid var(--gray3);cursor:pointer;transition:all .15s;margin-bottom:7px;}
+.list-item:hover{border-color:var(--amber);background:rgba(232,160,32,.03);}
+.list-item:last-child{margin-bottom:0;}
+.li-icon{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.li-main{flex:1;min-width:0;}
+.li-title{font-weight:600;font-size:13.5px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.li-sub{font-size:11.5px;color:var(--gray);margin-top:1px;}
+.li-right{text-align:right;flex-shrink:0;}
+.li-amount{font-weight:700;color:var(--navy);font-size:14.5px;}
+.pill{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:20px;margin-top:3px;letter-spacing:.3px;}
+.pg{background:var(--green2);color:var(--green);}
+.pa{background:rgba(232,160,32,.12);color:var(--amber);}
+.pr{background:var(--red2);color:var(--red);}
+.pb{background:var(--blue2);color:var(--blue);}
+.pn{background:var(--gray3);color:var(--gray);}
+
+/* CUSTOMERS */
+.cust-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
+.cust-card{background:#fff;border-radius:var(--r);padding:18px;box-shadow:var(--sh);cursor:pointer;transition:all .2s;border:1.5px solid transparent;}
+.cust-card:hover{border-color:var(--amber);transform:translateY(-2px);box-shadow:var(--sh2);}
+.cust-av{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:11px;}
+.cust-name{font-weight:700;font-size:14px;color:var(--navy);margin-bottom:2px;}
+.cust-sub{font-size:12px;color:var(--gray);}
+.cust-stats{display:flex;gap:14px;margin-top:12px;padding-top:10px;border-top:1px solid var(--gray3);}
+.cs-val{font-weight:700;color:var(--navy);font-size:13.5px;}
+.cs-lbl{font-size:10.5px;color:var(--gray);margin-top:1px;}
+
+/* CHAT */
+.chat-wrap{display:flex;flex-direction:column;height:520px;}
+.chat-msgs{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:11px;}
+.chat-msg{display:flex;gap:9px;align-items:flex-start;}
+.chat-msg.user{flex-direction:row-reverse;}
+.msg-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.msg-av.ai{background:var(--navy);color:var(--amber);}
+.msg-av.user{background:var(--amber);color:var(--navy3);font-weight:700;font-size:12px;}
+.msg-bub{max-width:82%;padding:10px 13px;border-radius:12px;font-size:13.5px;line-height:1.6;}
+.msg-bub.ai{background:var(--off);color:var(--navy3);border-radius:4px 12px 12px 12px;}
+.msg-bub.user{background:var(--navy);color:#fff;border-radius:12px 4px 12px 12px;}
+.chat-sugg{display:flex;gap:6px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--gray3);}
+.sugg-chip{font-size:12px;padding:4px 11px;background:var(--off);border:1.5px solid var(--gray2);border-radius:20px;cursor:pointer;color:var(--navy2);transition:all .15s;font-family:'DM Sans',sans-serif;}
+.sugg-chip:hover{border-color:var(--amber);color:var(--amber);background:rgba(232,160,32,.06);}
+.chat-in-row{padding:12px 16px;border-top:1px solid var(--gray3);display:flex;gap:8px;align-items:flex-end;}
+#chatInput{flex:1;padding:9px 13px;border:1.5px solid var(--gray2);border-radius:10px;font-family:'DM Sans',sans-serif;font-size:14px;resize:none;min-height:40px;max-height:110px;outline:none;}
+#chatInput:focus{border-color:var(--amber);box-shadow:0 0 0 3px rgba(232,160,32,.1);}
+.chat-send{width:40px;height:40px;background:var(--navy);color:#fff;border:none;border-radius:9px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:17px;transition:all .15s;flex-shrink:0;}
+.chat-send:hover{background:var(--amber);color:var(--navy3);}
+.typing{display:flex;gap:4px;align-items:center;padding:3px 0;}
+.tdot{width:7px;height:7px;border-radius:50%;background:var(--gray);animation:tdot .8s ease-in-out infinite;}
+.tdot:nth-child(2){animation-delay:.15s;}
+.tdot:nth-child(3){animation-delay:.3s;}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);}30%{transform:translateY(-5px);}}
+
+/* TABS */
+.tabs{display:flex;gap:2px;background:var(--gray3);border-radius:9px;padding:3px;margin-bottom:18px;}
+.tab-btn{flex:1;padding:7px 12px;border:none;border-radius:7px;background:transparent;font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;color:var(--gray);font-weight:500;transition:all .15s;}
+.tab-btn.active{background:#fff;color:var(--navy);font-weight:600;box-shadow:0 1px 6px rgba(0,0,0,.08);}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(13,24,38,.55);z-index:500;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal-ov.show{display:flex;}
+.modal{background:#fff;border-radius:16px;width:90%;max-width:520px;max-height:90vh;overflow-y:auto;box-shadow:var(--sh3);animation:mIn .25s cubic-bezier(.34,1.56,.64,1);}
+@keyframes mIn{from{opacity:0;transform:scale(.95);}to{opacity:1;transform:scale(1);}}
+.modal-hd{padding:20px 22px 14px;border-bottom:1px solid var(--gray3);display:flex;justify-content:space-between;align-items:center;}
+.modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:700;color:var(--navy);}
+.modal-close{width:30px;height:30px;border-radius:7px;background:var(--gray3);border:none;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.modal-close:hover{background:var(--gray2);}
+.modal-body{padding:20px 22px;}
+.modal-ft{padding:14px 22px;border-top:1px solid var(--gray3);display:flex;justify-content:flex-end;gap:8px;}
+
+/* CHART */
+.chart-bars{display:flex;gap:5px;align-items:flex-end;height:110px;margin-top:14px;}
+.cb-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.cb{width:100%;border-radius:4px 4px 0 0;background:var(--gray3);transition:height .6s ease,background .2s;cursor:pointer;position:relative;}
+.cb:hover{background:var(--amber);}
+.cb.hi{background:var(--amber);}
+.cb-val{font-size:10px;color:var(--gray);font-weight:600;}
+.cb-lbl{font-size:10px;color:var(--gray);}
+
+/* PROGRESS */
+.prog-bar{height:5px;background:var(--gray3);border-radius:10px;overflow:hidden;margin:6px 0;}
+.prog-fill{height:100%;border-radius:10px;background:linear-gradient(90deg,var(--amber),var(--amber2));transition:width .5s;}
+
+/* PAGES */
+.page{display:none;}
+.page.active{display:block;}
+
+/* API BANNER */
+.api-banner{background:rgba(232,160,32,.07);border:1.5px solid rgba(232,160,32,.22);border-radius:10px;padding:11px 15px;margin-bottom:18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+.api-banner input{flex:1;min-width:160px;background:#fff;font-size:13px;border-color:rgba(232,160,32,.4);padding:8px 12px;}
+
+/* INVOICE */
+.inv-doc{font-size:13px;border:1.5px solid var(--gray2);border-radius:var(--r);padding:20px;background:#fff;}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy3);color:#fff;padding:12px 18px;border-radius:10px;font-size:13.5px;box-shadow:var(--sh3);z-index:999;transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);display:flex;align-items:center;gap:10px;max-width:340px;}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* TIP CARD */
+.tip{padding:11px 13px;background:var(--off);border-radius:8px;margin-bottom:8px;}
+.tip-title{font-size:12px;font-weight:600;color:var(--navy);margin-bottom:3px;}
+.tip-txt{font-size:12px;color:var(--gray);}
+
+/* EMPTY */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:50px 20px;text-align:center;color:var(--gray);}
+.empty-icon{font-size:44px;opacity:.3;margin-bottom:12px;}
+.empty-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--navy);margin-bottom:5px;}
+.empty-sub{font-size:13.5px;max-width:240px;}
+
+@media(max-width:1200px){.stats-grid{grid-template-columns:repeat(2,1fr);}.cust-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:900px){.two-col{grid-template-columns:1fr!important;}}
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--gray2);border-radius:10px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-row">
+      <div class="logo-icon">🔧</div>
+      <div>
+        <div class="logo-name">Handwerk<span>GPT</span></div>
+        <div class="logo-ver">VERSION 2.0 · PRO</div>
+      </div>
+    </div>
+  </div>
+  <nav class="nav">
+    <span class="nav-label">Werkzeuge</span>
+    <button class="nav-item active" onclick="showPage('dashboard',this)"><span class="nav-icon">🏠</span>Dashboard</button>
+    <button class="nav-item" onclick="showPage('angebote',this)"><span class="nav-icon">📋</span>Angebote<span class="nav-badge nb-amber">3</span></button>
+    <button class="nav-item" onclick="showPage('rechnungen',this)"><span class="nav-icon">🧾</span>Rechnungen<span class="nav-badge nb-green">NEU</span></button>
+    <button class="nav-item" onclick="showPage('kunden',this)"><span class="nav-icon">👥</span>Kunden</button>
+    <button class="nav-item" onclick="showPage('assistent',this)"><span class="nav-icon">🤖</span>KI-Assistent<span class="nav-badge nb-green">KI</span></button>
+    <span class="nav-label">Verwaltung</span>
+    <button class="nav-item" onclick="showPage('finanzen',this)"><span class="nav-icon">📊</span>Finanzen</button>
+    <button class="nav-item" onclick="showPage('einstellungen',this)"><span class="nav-icon">⚙️</span>Einstellungen</button>
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="user-row">
+      <div class="avatar">MT</div>
+      <div><div class="user-name">Muster Betrieb GmbH</div><div class="user-plan">Pro · 29€/Monat</div></div>
+      <div class="online-dot"></div>
+    </div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="topbar">
+    <div class="page-title" id="pageTitle">Dashboard</div>
+    <div class="topbar-right">
+      <div class="ai-pill"><div class="ai-dot"></div>KI-aktiv</div>
+      <button class="btn btn-ghost" onclick="openModal('apiModal')" style="font-size:12px;padding:7px 13px;">🔑 API-Key</button>
+      <button class="btn btn-primary" onclick="showPage('angebote',null)">+ Neues Angebot</button>
+    </div>
+  </div>
+
+  <div class="content">
+
+  <!-- ── DASHBOARD ── -->
+  <div class="page active" id="page-dashboard">
+    <div class="stats-grid">
+      <div class="stat" onclick="showPage('angebote',null)"><div class="stat-label">Angebote (Monat)</div><div class="stat-value">14</div><div class="stat-trend up">↑ 4 mehr als Vormonat</div></div>
+      <div class="stat" onclick="showPage('rechnungen',null)"><div class="stat-label">Offene Rechnungen</div><div class="stat-value">6.840€</div><div class="stat-trend warn">⚠ 1 überfällig</div></div>
+      <div class="stat"><div class="stat-label">KI-Zeit gespart</div><div class="stat-value">6,4h</div><div class="stat-trend up">Diese Woche</div></div>
+      <div class="stat" onclick="showPage('kunden',null)"><div class="stat-label">Aktive Kunden</div><div class="stat-value">23</div><div class="stat-trend up">↑ 2 neue diesen Monat</div></div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1.2fr 1fr;gap:16px;margin-bottom:16px;" class="two-col">
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">📈 Umsatz 2026</div>
+          <span style="font-size:12px;color:var(--green);font-weight:600;">+22% vs. Vorjahr</span>
+        </div>
+        <div class="card-body" style="padding-bottom:14px;">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px;">
+            <span style="font-size:12px;color:var(--gray);">Ziel: 8.000€/Monat</span>
+            <span style="font-size:12px;font-weight:600;color:var(--navy);">6.840€ aktuell</span>
+          </div>
+          <div class="prog-bar"><div class="prog-fill" style="width:85%"></div></div>
+          <div class="chart-bars" id="dashChart"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:5px;">
+            <span style="font-size:10px;color:var(--gray);">Okt</span><span style="font-size:10px;color:var(--gray);">Nov</span><span style="font-size:10px;color:var(--gray);">Dez</span><span style="font-size:10px;color:var(--gray);">Jan</span><span style="font-size:10px;color:var(--amber);font-weight:600;">Feb ●</span>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">⚡ Schnellaktionen</div></div>
+        <div class="card-body" style="display:flex;flex-direction:column;gap:8px;padding:14px 18px;">
+          <button class="btn btn-primary" style="width:100%;justify-content:flex-start;padding:10px 14px;" onclick="showPage('angebote',null)">📋 Neues KI-Angebot erstellen</button>
+          <button class="btn btn-navy" style="width:100%;justify-content:flex-start;padding:10px 14px;" onclick="showPage('rechnungen',null)">🧾 Angebot → Rechnung umwandeln</button>
+          <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;padding:10px 14px;" onclick="showPage('assistent',null)">🤖 KI-Assistent fragen</button>
+          <button class="btn btn-ghost" style="width:100%;justify-content:flex-start;padding:10px 14px;" onclick="openModal('newCustModal')">👥 Neuen Kunden anlegen</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><div class="card-title">🕐 Letzte Aktivitäten</div></div>
+      <div class="card-body" style="padding:10px 16px;">
+        <div id="activityList"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ANGEBOTE ── -->
+  <div class="page" id="page-angebote">
+    <div class="api-banner">
+      <span style="font-size:12.5px;font-weight:700;color:var(--amber);white-space:nowrap;">🔑 Claude API</span>
+      <input type="password" id="apiKeyInput" placeholder="sk-ant-api03-..." />
+      <button class="btn btn-primary" style="font-size:12px;padding:7px 13px;" onclick="saveApiKey()">Verbinden</button>
+      <span id="apiStatus" style="font-size:12px;color:var(--gray);white-space:nowrap;">Nicht verbunden</span>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" class="two-col">
+      <!-- Form -->
+      <div class="card">
+        <div class="card-header"><div class="card-title">✦ Angebot generieren</div><div class="ai-pill"><div class="ai-dot"></div>Claude AI</div></div>
+        <div class="card-body">
+          <div class="form-group" style="margin-bottom:12px;">
+            <label>Gewerk wählen</label>
+            <div class="gewerk-grid">
+              <button class="gb sel" onclick="selGew(this,'Elektro')">⚡ Elektro</button>
+              <button class="gb" onclick="selGew(this,'Sanitär')">🚿 Sanitär</button>
+              <button class="gb" onclick="selGew(this,'Maler')">🎨 Maler</button>
+              <button class="gb" onclick="selGew(this,'Schreiner')">🪵 Schreiner</button>
+              <button class="gb" onclick="selGew(this,'Dachdecker')">🏠 Dachdecker</button>
+              <button class="gb" onclick="selGew(this,'Heizung')">🔥 Heizung</button>
+            </div>
+          </div>
+          <div class="form-row g2" style="margin-bottom:9px;">
+            <div class="form-group"><label>Kundenname</label><input id="f_k" value="Familie Becker" /></div>
+            <div class="form-group"><label>Ort / PLZ</label><input id="f_o" value="München, 80639" /></div>
+          </div>
+          <div class="form-row g2" style="margin-bottom:9px;">
+            <div class="form-group"><label>Gebäudetyp</label><select id="f_t"><option>Einfamilienhaus</option><option>Wohnung</option><option>Mehrfamilienhaus</option><option>Gewerbe</option><option>Altbau</option></select></div>
+            <div class="form-group"><label>Fläche</label><input id="f_f" value="120 qm" /></div>
+          </div>
+          <div class="form-group" style="margin-bottom:9px;">
+            <label>Leistungsbeschreibung</label>
+            <textarea id="f_b" style="min-height:85px;">Komplettsanierung der Elektroinstallation: Neue Unterverteilung, Leitungen in alle Räume, 20 Steckdosen, 15 Lichtschalter, 3 Drehstromsteckdosen für Küche, alle Leitungen unter Putz.</textarea>
+          </div>
+          <div class="form-row g2" style="margin-bottom:9px;">
+            <div class="form-group"><label>Wunschtermin</label><input id="f_te" value="Februar 2026" /></div>
+            <div class="form-group"><label>Besonderheiten</label><input id="f_ex" value="Altbau, bewohnt" /></div>
+          </div>
+          <button class="btn-gen" id="genBtn" onclick="genAngebot()">
+            <span class="spinner" id="genSpinner"></span>
+            <span id="genBtnIcon">✦</span>
+            <span id="genBtnTxt">Angebot mit KI generieren</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Output -->
+      <div class="out-panel">
+        <div class="out-header">
+          <div class="card-title">Vorschau</div>
+          <div class="sbadge sw" id="genStatus"><div class="sdot"></div><span id="genStatusTxt">Bereit</span></div>
+        </div>
+        <div class="out-scroll" id="genOut">
+          <div class="ph" id="genPH"><div class="ph-icon">📄</div><div class="ph-txt">Formular ausfüllen und auf Generieren klicken — fertig in ~5 Sekunden.</div></div>
+          <div id="genSkel" style="display:none;">
+            <div class="sk" style="height:18px;width:55%;margin-bottom:16px;"></div>
+            <div class="sk" style="height:11px;margin-bottom:7px;"></div>
+            <div class="sk" style="height:11px;width:80%;margin-bottom:16px;"></div>
+            <div class="sk" style="height:90px;margin-bottom:13px;"></div>
+            <div class="sk" style="height:13px;width:38%;margin-left:auto;margin-bottom:5px;"></div>
+            <div class="sk" style="height:13px;width:32%;margin-left:auto;margin-bottom:5px;"></div>
+            <div class="sk" style="height:18px;width:44%;margin-left:auto;margin-top:7px;"></div>
+          </div>
+          <div class="offer-doc" id="genResult" style="display:none;"></div>
+        </div>
+        <div class="out-footer" id="genFoot" style="display:none;">
+          <button class="btn btn-ghost" onclick="copyOffer()">📋 Kopieren</button>
+          <button class="btn btn-ghost" onclick="toast('📧 E-Mail-Versand kommt in v2.1!')">📧 E-Mail</button>
+          <button class="btn btn-green" onclick="offerToInvoice()">🧾 → Rechnung</button>
+          <button class="btn btn-navy" onclick="saveAngebot()">💾 Speichern</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Saved list -->
+    <div class="card" style="margin-top:18px;">
+      <div class="card-header"><div class="card-title">📂 Gespeicherte Angebote</div><button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" onclick="toast('📋 Alle Angebote — kommt in v2.1!')">Alle anzeigen</button></div>
+      <div class="card-body" style="padding:12px 16px;" id="savedList">
+        <div class="list-item"><div class="li-icon" style="background:rgba(232,160,32,.1);color:var(--amber);">⚡</div><div class="li-main"><div class="li-title">Familie Huber — Elektroinstallation Neubau</div><div class="li-sub">KI generiert · 12. Feb 2026 · München</div></div><div class="li-right"><div class="li-amount">4.850€</div><div class="pill pg">Angenommen</div></div></div>
+        <div class="list-item"><div class="li-icon" style="background:var(--blue2);color:var(--blue);">🚿</div><div class="li-main"><div class="li-title">Pension Alpenblick — Badezimmer Umbau</div><div class="li-sub">KI generiert · 9. Feb 2026 · Garmisch</div></div><div class="li-right"><div class="li-amount">6.200€</div><div class="pill pa">Ausstehend</div></div></div>
+        <div class="list-item"><div class="li-icon" style="background:rgba(232,100,32,.1);color:#E86420;">🎨</div><div class="li-main"><div class="li-title">Büro Schmidt GmbH — Malerarbeiten Innen</div><div class="li-sub">KI generiert · 5. Feb 2026 · Augsburg</div></div><div class="li-right"><div class="li-amount">2.340€</div><div class="pill pr">Abgelehnt</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RECHNUNGEN ── -->
+  <div class="page" id="page-rechnungen">
+    <div class="stats-grid" style="grid-template-columns:repeat(3,1fr);">
+      <div class="stat"><div class="stat-label">Offen</div><div class="stat-value">6.840€</div><div class="stat-trend up">3 Rechnungen</div></div>
+      <div class="stat"><div class="stat-label">Überfällig</div><div class="stat-value">1.200€</div><div class="stat-trend warn">⚠ 1 Rechnung</div></div>
+      <div class="stat"><div class="stat-label">Bezahlt (Monat)</div><div class="stat-value">12.450€</div><div class="stat-trend up">8 Rechnungen</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:18px;" class="two-col">
+      <div class="card">
+        <div class="card-header"><div class="card-title">🧾 Rechnung erstellen</div><div class="ai-pill"><div class="ai-dot"></div>KI</div></div>
+        <div class="card-body">
+          <div class="form-row g2" style="margin-bottom:9px;">
+            <div class="form-group"><label>Kunde</label><input id="inv_k" value="Familie Becker" /></div>
+            <div class="form-group"><label>Rechnungsnr.</label><input id="inv_nr" value="REC-2026-042" /></div>
+          </div>
+          <div class="form-row g2" style="margin-bottom:9px;">
+            <div class="form-group"><label>Datum</label><input id="inv_dat" type="date" value="2026-02-16" /></div>
+            <div class="form-group"><label>Fällig am</label><input id="inv_fael" type="date" value="2026-03-18" /></div>
+          </div>
+          <div class="form-group" style="margin-bottom:9px;"><label>Leistungsbeschreibung</label><textarea id="inv_lei" style="min-height:70px;">Elektroinstallation Komplettsanierung EFH, gemäß Angebot ANG-2026-117</textarea></div>
+          <div class="form-row g2" style="margin-bottom:9px;">
+            <div class="form-group"><label>Nettobetrag (€)</label><input id="inv_net" type="number" value="4075" oninput="calcInv()" /></div>
+            <div class="form-group"><label>MwSt.</label><select id="inv_mwst" onchange="calcInv()"><option value="19">19%</option><option value="7">7%</option><option value="0">0%</option></select></div>
+          </div>
+          <div style="background:var(--off);border-radius:8px;padding:10px 13px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;">
+            <span style="font-size:12px;color:var(--gray);">Bruttobetrag:</span>
+            <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;color:var(--navy);" id="invBrutto">4.849,25€</span>
+          </div>
+          <div class="form-group" style="margin-bottom:13px;"><label>Zahlungshinweis</label><input id="inv_hint" value="Bitte überweisen Sie innerhalb von 30 Tagen." /></div>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-primary" style="flex:1;" onclick="genInvoice()">✦ Rechnung erstellen</button>
+            <button class="btn btn-ghost" onclick="toast('📧 E-Mail-Versand kommt in v2.1!')">📧</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="out-panel">
+        <div class="out-header"><div class="card-title">Vorschau Rechnung</div><button class="btn btn-ghost" style="font-size:12px;padding:5px 11px;" id="invPrintBtn" onclick="toast('🖨️ PDF-Export kommt in v2.1!')" style="display:none;">🖨️ PDF</button></div>
+        <div class="out-scroll" id="invOut">
+          <div class="ph"><div class="ph-icon">🧾</div><div class="ph-txt">Formular ausfüllen und auf "Rechnung erstellen" klicken.</div></div>
+        </div>
+        <div class="out-footer" id="invFoot" style="display:none;">
+          <button class="btn btn-ghost" onclick="copyInvoice()">📋 Kopieren</button>
+          <button class="btn btn-navy" onclick="toast('💾 PDF gespeichert!')">💾 Als PDF</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px;">
+      <div class="card-header"><div class="card-title">📋 Alle Rechnungen</div></div>
+      <div class="card-body" style="padding:12px 16px;">
+        <div class="list-item"><div class="li-icon" style="background:var(--red2);color:var(--red);">⚠️</div><div class="li-main"><div class="li-title">REC-2026-038 · Firma Bau GmbH</div><div class="li-sub">Fällig: 1. Feb 2026 · Überfällig seit 15 Tagen</div></div><div class="li-right"><div class="li-amount">1.200€</div><div class="pill pr">Überfällig</div></div></div>
+        <div class="list-item"><div class="li-icon" style="background:var(--amber3);color:var(--amber);">🧾</div><div class="li-main"><div class="li-title">REC-2026-041 · Familie Huber</div><div class="li-sub">Fällig: 28. Feb 2026</div></div><div class="li-right"><div class="li-amount">4.850€</div><div class="pill pa">Offen</div></div></div>
+        <div class="list-item"><div class="li-icon" style="background:var(--green2);color:var(--green);">✅</div><div class="li-main"><div class="li-title">REC-2026-039 · Pension Alpenblick</div><div class="li-sub">Bezahlt am 10. Feb 2026</div></div><div class="li-right"><div class="li-amount">6.200€</div><div class="pill pg">Bezahlt</div></div></div>
+        <div class="list-item"><div class="li-icon" style="background:var(--green2);color:var(--green);">✅</div><div class="li-main"><div class="li-title">REC-2026-036 · Büro Schmidt GmbH</div><div class="li-sub">Bezahlt am 5. Feb 2026</div></div><div class="li-right"><div class="li-amount">2.340€</div><div class="pill pg">Bezahlt</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── KUNDEN ── -->
+  <div class="page" id="page-kunden">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+      <div style="font-size:13.5px;color:var(--gray);">23 Kunden · 4 aktive Aufträge</div>
+      <button class="btn btn-primary" onclick="openModal('newCustModal')">+ Neuer Kunde</button>
+    </div>
+    <div class="cust-grid" id="custGrid"></div>
+  </div>
+
+  <!-- ── KI-ASSISTENT ── -->
+  <div class="page" id="page-assistent">
+    <div style="display:grid;grid-template-columns:1fr 300px;gap:18px;" class="two-col">
+      <div class="card" style="display:flex;flex-direction:column;">
+        <div class="card-header"><div class="card-title">🤖 KI-Assistent</div><div class="ai-pill"><div class="ai-dot"></div>Claude AI</div></div>
+        <div class="chat-wrap">
+          <div class="chat-msgs" id="chatMsgs">
+            <div class="chat-msg">
+              <div class="msg-av ai">🔧</div>
+              <div class="msg-bub ai">Hallo! Ich bin dein KI-Assistent. Ich helfe dir bei Angeboten, Mahnungen, Preiskalkulationen, rechtlichen Fragen und vielem mehr. Was kann ich für dich tun?</div>
+            </div>
+          </div>
+          <div class="chat-sugg" id="chatSugg">
+            <button class="sugg-chip" onclick="useSugg(this)">💡 Wie kalkuliere ich meinen Stundensatz?</button>
+            <button class="sugg-chip" onclick="useSugg(this)">📝 Schreib eine Mahnung für einen Kunden</button>
+            <button class="sugg-chip" onclick="useSugg(this)">⚖️ Was ist Gewährleistungspflicht VOB?</button>
+            <button class="sugg-chip" onclick="useSugg(this)">💶 Wie setze ich Skonto richtig ein?</button>
+          </div>
+          <div class="chat-in-row">
+            <textarea id="chatInput" rows="1" placeholder="Frag mich etwas..." onkeydown="chatKey(event)" oninput="autoResize(this)"></textarea>
+            <button class="chat-send" id="chatSendBtn" onclick="sendChat()">➤</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:13px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">💡 Schnell-Tipps</div></div>
+          <div class="card-body" style="padding:14px 16px;">
+            <div class="tip" style="border-left:3px solid var(--amber);"><div class="tip-title">⚡ KI-Angebote in 5 Sek.</div><div class="tip-txt">Nutze den Generator im "Angebote"-Bereich für vollständige, professionelle Angebote.</div></div>
+            <div class="tip" style="border-left:3px solid var(--green);"><div class="tip-title">📝 Mahnungen automatisch</div><div class="tip-txt">Sag mir: "Schreib eine Mahnung für Rechnung REC-2026-038" — ich erstelle sie sofort.</div></div>
+            <div class="tip" style="border-left:3px solid var(--blue);"><div class="tip-title">💬 WhatsApp → Dokument</div><div class="tip-txt">Füge eine WhatsApp-Nachricht ein und ich wandle sie in eine Auftragsbestätigung um.</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📊 Heute generiert</div></div>
+          <div class="card-body" style="padding:14px 16px;">
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--gray3);"><span style="color:var(--gray);">Angebote</span><span style="font-weight:600;color:var(--navy);" id="statAngebote">0</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--gray3);"><span style="color:var(--gray);">Rechnungen</span><span style="font-weight:600;color:var(--navy);" id="statRechnungen">0</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid var(--gray3);"><span style="color:var(--gray);">Chat-Nachrichten</span><span style="font-weight:600;color:var(--navy);" id="statChat">0</span></div>
+            <div style="display:flex;justify-content:space-between;font-size:13px;padding:6px 0;"><span style="color:var(--gray);">Zeit gespart (est.)</span><span style="font-weight:600;color:var(--green);" id="statZeit">0 min</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── FINANZEN ── -->
+  <div class="page" id="page-finanzen">
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Umsatz YTD 2026</div><div class="stat-value">14.200€</div><div class="stat-trend up">↑ 22% vs. Vorjahr</div></div>
+      <div class="stat"><div class="stat-label">Ø Angebotswert</div><div class="stat-value">3.840€</div><div class="stat-trend up">↑ 340€ vs. Vormonat</div></div>
+      <div class="stat"><div class="stat-label">Abschlussquote</div><div class="stat-value">68%</div><div class="stat-trend up">↑ 12% durch KI</div></div>
+      <div class="stat"><div class="stat-label">Steuerrücklage</div><div class="stat-value">2.700€</div><div class="stat-trend neutral">19% zurückgelegt</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:16px;" class="two-col">
+      <div class="card">
+        <div class="card-header"><div class="card-title">📊 Monatsumsatz 2026</div></div>
+        <div class="card-body" style="padding-bottom:14px;">
+          <div class="chart-bars" id="finChart" style="height:140px;"></div>
+          <div style="display:flex;justify-content:space-between;margin-top:6px;">
+            <span style="font-size:10px;color:var(--gray);">Okt</span><span style="font-size:10px;color:var(--gray);">Nov</span><span style="font-size:10px;color:var(--gray);">Dez</span><span style="font-size:10px;color:var(--gray);">Jan</span><span style="font-size:10px;color:var(--amber);font-weight:600;">Feb ●</span>
+          </div>
+          <div style="display:flex;gap:20px;margin-top:14px;padding-top:12px;border-top:1px solid var(--gray3);">
+            <div><div style="font-size:11px;color:var(--gray);">Netto verfügbar</div><div style="font-weight:800;font-size:18px;color:var(--green);">11.500€</div></div>
+            <div><div style="font-size:11px;color:var(--gray);">Steuer (19%)</div><div style="font-weight:800;font-size:18px;color:var(--navy);">2.700€</div></div>
+            <div><div style="font-size:11px;color:var(--gray);">Material-Kosten</div><div style="font-weight:800;font-size:18px;color:var(--navy);">3.200€</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">🎯 Jahresziel</div></div>
+        <div class="card-body">
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span style="color:var(--gray);">Umsatz 2026</span><span style="font-weight:600;">14.200€ / 80.000€</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:18%"></div></div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span style="color:var(--gray);">Neue Kunden</span><span style="font-weight:600;">2 / 12 Ziel</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:17%"></div></div>
+          </div>
+          <div style="margin-bottom:12px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span style="color:var(--gray);">Abschlussquote</span><span style="font-weight:600;">68% / 75% Ziel</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:91%"></div></div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:5px;"><span style="color:var(--gray);">KI-Zeit gespart</span><span style="font-weight:600;">6,4h / 52h Ziel</span></div>
+            <div class="prog-bar"><div class="prog-fill" style="width:12%"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── EINSTELLUNGEN ── -->
+  <div class="page" id="page-einstellungen">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" class="two-col">
+      <div class="card">
+        <div class="card-header"><div class="card-title">🏢 Betriebsdaten</div></div>
+        <div class="card-body">
+          <div class="form-group" style="margin-bottom:9px;"><label>Firmenname</label><input value="Muster Betrieb GmbH" /></div>
+          <div class="form-row g2" style="margin-bottom:9px;">
+            <div class="form-group"><label>Inhaber</label><input value="Max Muster" /></div>
+            <div class="form-group"><label>Gewerk</label><select><option>Elektro</option><option>Sanitär</option><option>Maler</option><option>Schreiner</option></select></div>
+          </div>
+          <div class="form-row g2" style="margin-bottom:9px;">
+            <div class="form-group"><label>Straße</label><input value="Musterstraße 12" /></div>
+            <div class="form-group"><label>PLZ + Stadt</label><input value="80331 München" /></div>
+          </div>
+          <div class="form-row g2" style="margin-bottom:9px;">
+            <div class="form-group"><label>Telefon</label><input value="089 123456" /></div>
+            <div class="form-group"><label>E-Mail</label><input value="info@muster-betrieb.de" /></div>
+          </div>
+          <div class="form-row g2" style="margin-bottom:14px;">
+            <div class="form-group"><label>Steuernummer</label><input value="123/456/78901" /></div>
+            <div class="form-group"><label>USt-IdNr.</label><input value="DE123456789" /></div>
+          </div>
+          <div class="form-group" style="margin-bottom:9px;"><label>Bankverbindung (IBAN)</label><input value="DE89 3704 0044 0532 0130 00" /></div>
+          <button class="btn btn-primary" onclick="toast('✅ Betriebsdaten gespeichert!')">Speichern</button>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🤖 KI-Einstellungen</div></div>
+          <div class="card-body">
+            <div class="form-group" style="margin-bottom:9px;"><label>Claude API-Key</label><input type="password" placeholder="sk-ant-api03-..." /></div>
+            <div class="form-group" style="margin-bottom:9px;"><label>Standard-Gewährleistung</label><select><option>5 Jahre (VOB)</option><option>2 Jahre (BGB)</option><option>Individuell</option></select></div>
+            <div class="form-group" style="margin-bottom:9px;"><label>Zahlungsziel</label><select><option>30 Tage netto</option><option>14 Tage / 2% Skonto</option><option>Sofort fällig</option></select></div>
+            <div class="form-group" style="margin-bottom:9px;"><label>Standard-MwSt.</label><select><option>19%</option><option>7%</option></select></div>
+            <div class="form-group" style="margin-bottom:14px;"><label>KI-Tonalität</label><select><option>Professionell & freundlich</option><option>Formal & knapp</option><option>Persönlich & warm</option></select></div>
+            <button class="btn btn-navy" onclick="toast('✅ KI-Einstellungen gespeichert!')">Speichern</button>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">📦 Abo & Plan</div></div>
+          <div class="card-body">
+            <div style="background:linear-gradient(135deg,var(--navy),var(--navy2));border-radius:10px;padding:16px;color:#fff;margin-bottom:12px;">
+              <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:var(--amber);">Pro Plan</div>
+              <div style="font-size:22px;font-weight:700;margin:4px 0;">29€ <span style="font-size:13px;font-weight:400;opacity:.7;">/Monat</span></div>
+              <div style="font-size:12px;opacity:.7;">Nächste Zahlung: 1. März 2026</div>
+            </div>
+            <div style="font-size:12.5px;color:var(--gray);display:flex;flex-direction:column;gap:5px;">
+              <div>✅ Unbegrenzte KI-Angebote</div>
+              <div>✅ Rechnungen & Kundenverwaltung</div>
+              <div>✅ KI-Assistent</div>
+              <div style="color:var(--gray2);">🔒 Baudokumentation (Team)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- MODALS -->
+<div class="modal-ov" id="apiModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title">🔑 Claude API-Key einrichten</div><button class="modal-close" onclick="closeModal('apiModal')">✕</button></div>
+    <div class="modal-body">
+      <p style="font-size:13.5px;color:var(--gray);margin-bottom:14px;line-height:1.6;">Registriere dich kostenlos auf <strong style="color:var(--navy);">console.anthropic.com</strong> und kopiere deinen API-Key hierher.</p>
+      <div class="form-group" style="margin-bottom:10px;"><label>API-Key</label><input type="password" id="modalApiKey" placeholder="sk-ant-api03-..." /></div>
+      <div style="padding:10px 13px;background:var(--off);border-radius:8px;font-size:12.5px;color:var(--gray);">💡 Kosten: ~0,01–0,03€ pro Angebot. Für Demos kostenlos.</div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('apiModal')">Abbrechen</button><button class="btn btn-primary" onclick="saveApiKeyModal()">Verbinden</button></div>
+  </div>
+</div>
+
+<div class="modal-ov" id="newCustModal">
+  <div class="modal">
+    <div class="modal-hd"><div class="modal-title">👤 Neuen Kunden anlegen</div><button class="modal-close" onclick="closeModal('newCustModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-row g2" style="margin-bottom:9px;"><div class="form-group"><label>Vorname</label><input id="nc_v" placeholder="Max" /></div><div class="form-group"><label>Nachname</label><input id="nc_n" placeholder="Mustermann" /></div></div>
+      <div class="form-group" style="margin-bottom:9px;"><label>Firma (optional)</label><input id="nc_f" placeholder="Firma GmbH" /></div>
+      <div class="form-row g2" style="margin-bottom:9px;"><div class="form-group"><label>Telefon</label><input id="nc_t" placeholder="089 123456" /></div><div class="form-group"><label>E-Mail</label><input id="nc_e" placeholder="max@example.de" /></div></div>
+      <div class="form-group" style="margin-bottom:9px;"><label>Adresse</label><input id="nc_a" placeholder="Musterstraße 12, 80331 München" /></div>
+      <div class="form-group"><label>Gewerk / Notizen</label><textarea id="nc_no" style="min-height:60px;" placeholder="z.B. Stammkunde Elektro, 2x Sanierung..."></textarea></div>
+    </div>
+    <div class="modal-ft"><button class="btn btn-ghost" onclick="closeModal('newCustModal')">Abbrechen</button><button class="btn btn-primary" onclick="addCustomer()">Speichern</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"><span id="toastMsg"></span></div>
+
+<script>
+// ── STATE ──────────────────────────────────────────
+let apiKey = '';
+let selGewerk = 'Elektro';
+let lastOffer = null;
+let lastInvoice = null;
+let chatCount = 0, angebotCount = 0, rechnungCount = 0;
+
+let customers = [
+  {name:'Familie Huber', sub:'Einfamilienhaus · München', emoji:'🏠', bg:'#E8F0FE', angebote:3, umsatz:'12.450€', status:'Stammkunde'},
+  {name:'Pension Alpenblick', sub:'Gewerbe · Garmisch', emoji:'🏔️', bg:'#E8F7F0', angebote:2, umsatz:'8.600€', status:'Aktiver Auftrag'},
+  {name:'Büro Schmidt GmbH', sub:'Gewerbe · Augsburg', emoji:'🏢', bg:'#FDE8B0', angebote:1, umsatz:'2.340€', status:'Inaktiv'},
+  {name:'Fam. Bergmann', sub:'Altbau · München', emoji:'🏡', bg:'#FEE8E8', angebote:4, umsatz:'15.200€', status:'Stammkunde'},
+  {name:'Hotel Panorama', sub:'Gewerbe · Rosenheim', emoji:'🏨', bg:'#E8ECF2', angebote:2, umsatz:'9.800€', status:'Angebot offen'},
+  {name:'Praxis Dr. Maier', sub:'Gewerbe · München', emoji:'🏥', bg:'#E8F0FE', angebote:1, umsatz:'4.200€', status:'Aktiver Auftrag'},
+];
+
+const activities = [
+  {icon:'⚡', txt:'Angebot für Familie Becker generiert', time:'Vor 10 Min.', color:'rgba(232,160,32,.1)', tc:'var(--amber)'},
+  {icon:'✅', txt:'Rechnung REC-2026-041 als bezahlt markiert', time:'Vor 1 Std.', color:'var(--green2)', tc:'var(--green)'},
+  {icon:'👤', txt:'Neuer Kunde: Hotel Panorama angelegt', time:'Vor 3 Std.', color:'var(--blue2)', tc:'var(--blue)'},
+  {icon:'🧾', txt:'Rechnung REC-2026-042 erstellt (4.849€)', time:'Gestern', color:'var(--gray3)', tc:'var(--gray)'},
+  {icon:'📋', txt:'Angebot für Pension Alpenblick angenommen', time:'Gestern', color:'var(--green2)', tc:'var(--green)'},
+];
+
+// ── PAGE NAV ───────────────────────────────────────
+function showPage(name, btn) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  const titles = {dashboard:'Dashboard',angebote:'Angebote',rechnungen:'Rechnungen',kunden:'Kunden',assistent:'KI-Assistent',finanzen:'Finanzen',einstellungen:'Einstellungen'};
+  document.getElementById('pageTitle').textContent = titles[name] || name;
+}
+
+// ── GEWERK ─────────────────────────────────────────
+function selGew(btn, gew) {
+  document.querySelectorAll('.gb').forEach(b => b.classList.remove('sel'));
+  btn.classList.add('sel');
+  selGewerk = gew;
+}
+
+// ── API KEY ────────────────────────────────────────
+function saveApiKey() {
+  const v = document.getElementById('apiKeyInput').value.trim();
+  if (!v) { toast('⚠️ Bitte API-Key eingeben'); return; }
+  apiKey = v;
+  document.getElementById('apiStatus').textContent = '✅ Verbunden';
+  document.getElementById('apiStatus').style.color = 'var(--green)';
+  toast('🔑 API-Key gespeichert — KI bereit!');
+}
+function saveApiKeyModal() {
+  const v = document.getElementById('modalApiKey').value.trim();
+  if (!v) { toast('⚠️ Bitte API-Key eingeben'); return; }
+  apiKey = v;
+  document.getElementById('apiKeyInput').value = v;
+  document.getElementById('apiStatus').textContent = '✅ Verbunden';
+  document.getElementById('apiStatus').style.color = 'var(--green)';
+  closeModal('apiModal');
+  toast('🔑 API-Key gespeichert — KI bereit!');
+}
+
+// ── MODALS ─────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+document.querySelectorAll('.modal-ov').forEach(o => o.addEventListener('click', e => { if(e.target===o) o.classList.remove('show'); }));
+
+// ── GENERATE ANGEBOT ───────────────────────────────
+async function genAngebot() {
+  if (!apiKey) { toast('🔑 Bitte zuerst API-Key eingeben'); openModal('apiModal'); return; }
+  const k = document.getElementById('f_k').value||'Kunde';
+  const o = document.getElementById('f_o').value||'';
+  const t = document.getElementById('f_t').value||'';
+  const f = document.getElementById('f_f').value||'';
+  const b = document.getElementById('f_b').value||'';
+  const te = document.getElementById('f_te').value||'';
+  const ex = document.getElementById('f_ex').value||'';
+
+  setGenState('loading');
+  const today = new Date().toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'});
+  const valid = new Date(Date.now()+30*864e5).toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'});
+  const nr = 'ANG-2026-' + String(Math.floor(Math.random()*900+100));
+
+  const prompt = `Du bist ein erfahrener Handwerksmeister. Erstelle ein professionelles Handwerksangebot als JSON.
+Gewerk: ${selGewerk}, Kunde: ${k} (${o}), Gebäude: ${t}, Fläche: ${f}
+Leistung: ${b}, Termin: ${te}, Besonderheiten: ${ex}
+Datum: ${today}, Gültig bis: ${valid}, Angebotsnr.: ${nr}
+
+Antworte NUR mit diesem JSON (kein Text davor/danach, kein Markdown):
+{"angebotsnr":"${nr}","datum":"${today}","gueltig":"${valid}","kunde":"${k}","ort":"${o}","intro":"2-3 Sätze professioneller Einleitungstext","positionen":[{"pos":"1","beschr":"Leistungsposition","detail":"Technische Details","menge":"Zahl Einheit","einzel":Zahl,"gesamt":Zahl}],"netto":Zahl,"mwst":Zahl,"brutto":Zahl,"hinweise":"Gewährleistung 5 Jahre VOB, Zahlung 50% Anzahlung Rest nach Abnahme"}
+Erstelle 4-6 Positionen. Preise realistisch für ${o}. Antworte NUR mit dem JSON-Objekt.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-5-20250929',max_tokens:1500,messages:[{role:'user',content:prompt}]})
+    });
+    if (!res.ok) { const e = await res.json().catch(()=>({})); throw new Error(e.error?.message||`HTTP ${res.status}`); }
+    const data = await res.json();
+    const raw = data.content?.[0]?.text||'';
+    const m = raw.match(/\{[\s\S]*\}/);
+    if (!m) throw new Error('Kein JSON in Antwort');
+    lastOffer = JSON.parse(m[0]);
+    renderOffer(lastOffer);
+    angebotCount++;
+    updateStats();
+    setGenState('done');
+    toast('✅ Angebot erfolgreich generiert!');
+  } catch(err) {
+    setGenState('error');
+    toast('❌ ' + (err.message||'Fehler beim Generieren'));
+  }
+}
+
+function setGenState(s) {
+  const btn = document.getElementById('genBtn');
+  const sp = document.getElementById('genSpinner');
+  const ic = document.getElementById('genBtnIcon');
+  const tx = document.getElementById('genBtnTxt');
+  const ph = document.getElementById('genPH');
+  const sk = document.getElementById('genSkel');
+  const res = document.getElementById('genResult');
+  const ft = document.getElementById('genFoot');
+  const sb = document.getElementById('genStatus');
+  const st = document.getElementById('genStatusTxt');
+
+  ph.style.display='none'; sk.style.display='none'; res.style.display='none'; ft.style.display='none';
+  btn.disabled = s==='loading';
+  sp.style.display = s==='loading'?'block':'none';
+  ic.style.display = s==='loading'?'none':'block';
+
+  if(s==='loading'){tx.textContent='KI generiert...';sk.style.display='block';sb.className='sbadge sg';st.textContent='Generiere...';}
+  else if(s==='done'){tx.textContent='Neues Angebot generieren';res.style.display='block';ft.style.display='flex';sb.className='sbadge sd';st.textContent='Fertig';}
+  else if(s==='error'){tx.textContent='Erneut versuchen';ph.style.display='flex';sb.className='sbadge se';st.textContent='Fehler';}
+  else{tx.textContent='Angebot mit KI generieren';ph.style.display='flex';sb.className='sbadge sw';st.textContent='Bereit';}
+}
+
+function renderOffer(a) {
+  const rows = (a.positionen||[]).map(p=>`
+    <tr><td><div class="pd">${esc(p.beschr)}</div><div class="pdet">${esc(p.detail||'')}</div></td>
+    <td>${esc(String(p.menge||''))}</td>
+    <td>${fmtEur(p.einzel)}</td>
+    <td style="font-weight:600;">${fmtEur(p.gesamt)}</td></tr>`).join('');
+
+  document.getElementById('genResult').innerHTML = `
+    <div class="offer-doc">
+      <div class="offer-head">
+        <div><div class="offer-co">${esc(selGewerk)}betrieb Muster</div><div class="offer-co-sub">Musterstraße 12 · 80331 München · Tel. 089 123456 · info@muster-betrieb.de</div></div>
+        <div class="offer-stamp">ANGEBOT</div>
+      </div>
+      <div class="meta-box">
+        <div><div class="ml">Angebotsnr.</div><div class="mv">${esc(a.angebotsnr||'')}</div></div>
+        <div><div class="ml">Datum</div><div class="mv">${esc(a.datum||'')}</div></div>
+        <div><div class="ml">Auftraggeber</div><div class="mv">${esc(a.kunde||'')}</div></div>
+        <div><div class="ml">Gültig bis</div><div class="mv">${esc(a.gueltig||'')}</div></div>
+      </div>
+      <p class="offer-intro">${esc(a.intro||'')}</p>
+      <table class="pos-tbl"><thead><tr><th>Leistung</th><th>Menge</th><th>Einzelpreis</th><th>Gesamt</th></tr></thead><tbody>${rows}</tbody></table>
+      <div class="totals">
+        <div class="trow"><span>Nettobetrag</span><span>${fmtEur(a.netto)}</span></div>
+        <div class="trow"><span>MwSt. 19%</span><span>${fmtEur(a.mwst)}</span></div>
+        <div class="trow grand"><span>Gesamtbetrag</span><span>${fmtEur(a.brutto)}</span></div>
+      </div>
+      <div class="offer-notes"><strong>Hinweise:</strong> ${esc(a.hinweise||'')}</div>
+    </div>`;
+}
+
+// ── INVOICE ────────────────────────────────────────
+function calcInv() {
+  const net = parseFloat(document.getElementById('inv_net').value)||0;
+  const mwst = parseFloat(document.getElementById('inv_mwst').value)||19;
+  const brutto = net * (1 + mwst/100);
+  document.getElementById('invBrutto').textContent = fmtEur(brutto);
+}
+
+function genInvoice() {
+  const k = document.getElementById('inv_k').value||'Kunde';
+  const nr = document.getElementById('inv_nr').value||'REC-2026-001';
+  const dat = document.getElementById('inv_dat').value;
+  const fael = document.getElementById('inv_fael').value;
+  const lei = document.getElementById('inv_lei').value||'';
+  const net = parseFloat(document.getElementById('inv_net').value)||0;
+  const mwstP = parseFloat(document.getElementById('inv_mwst').value)||19;
+  const mwst = net * mwstP / 100;
+  const brutto = net + mwst;
+  const hint = document.getElementById('inv_hint').value||'';
+
+  const datStr = dat ? new Date(dat).toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'}) : '';
+  const faelStr = fael ? new Date(fael).toLocaleDateString('de-DE',{day:'2-digit',month:'long',year:'numeric'}) : '';
+
+  lastInvoice = {k,nr,datStr,faelStr,lei,net,mwstP,mwst,brutto,hint};
+
+  document.getElementById('invOut').innerHTML = `
+    <div class="inv-doc">
+      <div class="offer-head">
+        <div><div class="offer-co">${esc(selGewerk)}betrieb Muster</div><div class="offer-co-sub">Musterstraße 12 · 80331 München · DE89 3704 0044 0532 0130 00</div></div>
+        <div class="offer-stamp">RECHNUNG</div>
+      </div>
+      <div class="meta-box">
+        <div><div class="ml">Rechnungsnr.</div><div class="mv">${esc(nr)}</div></div>
+        <div><div class="ml">Datum</div><div class="mv">${esc(datStr)}</div></div>
+        <div><div class="ml">Auftraggeber</div><div class="mv">${esc(k)}</div></div>
+        <div><div class="ml">Fällig am</div><div class="mv" style="color:var(--red);font-weight:600;">${esc(faelStr)}</div></div>
+      </div>
+      <p style="font-size:13px;color:#555;margin-bottom:14px;line-height:1.65;"><strong>Leistung:</strong> ${esc(lei)}</p>
+      <div style="background:var(--off);border-radius:8px;padding:14px;margin-bottom:14px;">
+        <div class="trow"><span>Nettobetrag</span><span>${fmtEur(net)}</span></div>
+        <div class="trow"><span>MwSt. ${mwstP}%</span><span>${fmtEur(mwst)}</span></div>
+        <div class="trow grand"><span>Rechnungsbetrag</span><span>${fmtEur(brutto)}</span></div>
+      </div>
+      <div style="background:var(--navy);color:#fff;border-radius:8px;padding:13px;font-size:13px;margin-bottom:12px;">
+        <div style="color:var(--amber2);font-weight:600;margin-bottom:3px;">Zahlungsdetails</div>
+        <div>IBAN: DE89 3704 0044 0532 0130 00 · BIC: COBADEFFXXX</div>
+        <div style="margin-top:4px;opacity:.8;">Verwendungszweck: ${esc(nr)} · ${esc(k)}</div>
+      </div>
+      <div class="offer-notes"><strong>Zahlungshinweis:</strong> ${esc(hint)}</div>
+    </div>`;
+  document.getElementById('invFoot').style.display = 'flex';
+  rechnungCount++;
+  updateStats();
+  toast('🧾 Rechnung erstellt!');
+}
+
+// ── OFFER → INVOICE ────────────────────────────────
+function offerToInvoice() {
+  if(!lastOffer){ toast('Kein Angebot vorhanden'); return; }
+  showPage('rechnungen', null);
+  document.getElementById('inv_k').value = lastOffer.kunde||'';
+  document.getElementById('inv_net').value = lastOffer.netto||0;
+  calcInv();
+  document.getElementById('inv_lei').value = `Gemäß Angebot ${lastOffer.angebotsnr||''}`;
+  toast('📋 Angebot in Rechnungsformular übertragen!');
+}
+
+// ── SAVE ANGEBOT ───────────────────────────────────
+function saveAngebot() {
+  if(!lastOffer) return;
+  const li = document.getElementById('savedList');
+  const d = document.createElement('div');
+  d.className='list-item';
+  d.innerHTML=`<div class="li-icon" style="background:rgba(232,160,32,.1);color:var(--amber);">✦</div><div class="li-main"><div class="li-title">${esc(lastOffer.kunde)} — ${esc(selGewerk)}arbeiten</div><div class="li-sub">KI generiert · Heute</div></div><div class="li-right"><div class="li-amount">${fmtEur(lastOffer.brutto)}</div><div class="pill pa">Neu</div></div>`;
+  li.insertBefore(d, li.firstChild);
+  toast('💾 Angebot gespeichert!');
+}
+
+// ── CUSTOMERS ──────────────────────────────────────
+function renderCustomers() {
+  const grid = document.getElementById('custGrid');
+  grid.innerHTML = customers.map(c=>`
+    <div class="cust-card" onclick="toast('👤 Kundenprofil: ${c.name}')">
+      <div class="cust-av" style="background:${c.bg};">${c.emoji}</div>
+      <div class="cust-name">${esc(c.name)}</div>
+      <div class="cust-sub">${esc(c.sub)}</div>
+      <div style="margin-top:6px;"><span class="pill ${c.status==='Stammkunde'?'pg':c.status==='Aktiver Auftrag'?'pb':c.status==='Angebot offen'?'pa':'pn'}">${esc(c.status)}</span></div>
+      <div class="cust-stats">
+        <div><div class="cs-val">${c.angebote}</div><div class="cs-lbl">Angebote</div></div>
+        <div><div class="cs-val">${c.umsatz}</div><div class="cs-lbl">Umsatz</div></div>
+      </div>
+    </div>`).join('');
+}
+
+function addCustomer() {
+  const v = document.getElementById('nc_v').value.trim();
+  const n = document.getElementById('nc_n').value.trim();
+  if (!v && !n) { toast('⚠️ Bitte Name eingeben'); return; }
+  const name = [v,n].filter(Boolean).join(' ');
+  const firma = document.getElementById('nc_f').value.trim();
+  const adresse = document.getElementById('nc_a').value.trim();
+  customers.unshift({name: firma||name, sub: (adresse||'München'), emoji:'👤', bg:'#E8F0FE', angebote:0, umsatz:'0€', status:'Neukunde'});
+  renderCustomers();
+  closeModal('newCustModal');
+  ['nc_v','nc_n','nc_f','nc_t','nc_e','nc_a','nc_no'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  toast('✅ Kunde gespeichert!');
+}
+
+// ── KI CHAT ────────────────────────────────────────
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg) return;
+  if (!apiKey) { toast('🔑 Bitte API-Key eingeben'); openModal('apiModal'); return; }
+
+  appendMsg(msg, 'user');
+  input.value = '';
+  input.style.height = '';
+  document.getElementById('chatSendBtn').disabled = true;
+  chatCount++;
+  updateStats();
+
+  const typingId = appendMsg('<div class="typing"><div class="tdot"></div><div class="tdot"></div><div class="tdot"></div></div>', 'ai', true);
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
+      body:JSON.stringify({model:'claude-sonnet-4-5-20250929',max_tokens:600,system:'Du bist ein hilfreicher KI-Assistent für einen deutschen Handwerksbetrieb. Antworte auf Deutsch, präzise und praxisnah. Halte Antworten unter 150 Wörtern.',messages:[{role:'user',content:msg}]})
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text||'Entschuldigung, keine Antwort erhalten.';
+    removeMsg(typingId);
+    appendMsg(reply, 'ai');
+  } catch(e) {
+    removeMsg(typingId);
+    appendMsg('❌ Fehler: ' + (e.message||'Verbindungsfehler'), 'ai');
+  }
+  document.getElementById('chatSendBtn').disabled = false;
+}
+
+let msgId = 0;
+function appendMsg(text, role, isHtml=false) {
+  const id = 'msg-' + (++msgId);
+  const div = document.createElement('div');
+  div.className = 'chat-msg ' + role;
+  div.id = id;
+  const av = document.createElement('div');
+  av.className = 'msg-av ' + role;
+  av.textContent = role==='ai' ? '🔧' : 'MT';
+  const bub = document.createElement('div');
+  bub.className = 'msg-bub ' + role;
+  if(isHtml) bub.innerHTML = text;
+  else bub.textContent = text;
+  div.appendChild(av);
+  div.appendChild(bub);
+  const msgs = document.getElementById('chatMsgs');
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return id;
+}
+function removeMsg(id) { const el=document.getElementById(id); if(el) el.remove(); }
+
+function useSugg(btn) {
+  document.getElementById('chatInput').value = btn.textContent.replace(/^[^\s]+\s/, '');
+  document.getElementById('chatSugg').style.display = 'none';
+  sendChat();
+}
+
+function chatKey(e) { if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); sendChat(); } }
+function autoResize(el) { el.style.height=''; el.style.height=Math.min(el.scrollHeight,110)+'px'; }
+
+// ── CHARTS ────────────────────────────────────────
+const chartData = [
+  {v:4200,lbl:'Okt'},{v:5800,lbl:'Nov'},{v:3400,lbl:'Dez'},{v:6100,lbl:'Jan'},{v:6840,lbl:'Feb',hi:true}
+];
+
+function renderChart(containerId, maxH) {
+  const cont = document.getElementById(containerId);
+  if(!cont) return;
+  const max = Math.max(...chartData.map(d=>d.v));
+  cont.innerHTML = chartData.map(d=>`
+    <div class="cb-wrap">
+      <div class="cb-val">${(d.v/1000).toFixed(1)}k</div>
+      <div class="cb ${d.hi?'hi':''}" style="height:${(d.v/max)*maxH}px;" title="${d.v.toLocaleString('de-DE')}€"></div>
+    </div>`).join('');
+}
+
+// ── ACTIVITY LIST ─────────────────────────────────
+function renderActivity() {
+  const list = document.getElementById('activityList');
+  if(!list) return;
+  list.innerHTML = activities.map(a=>`
+    <div class="list-item" style="padding:9px 13px;margin-bottom:6px;">
+      <div class="li-icon" style="background:${a.color};color:${a.tc};width:32px;height:32px;font-size:15px;">${a.icon}</div>
+      <div class="li-main"><div class="li-title" style="font-size:13px;">${a.txt}</div></div>
+      <div style="font-size:11.5px;color:var(--gray);white-space:nowrap;">${a.time}</div>
+    </div>`).join('');
+}
+
+// ── STATS COUNTER ─────────────────────────────────
+function updateStats() {
+  const el = id => document.getElementById(id);
+  if(el('statAngebote')) el('statAngebote').textContent = angebotCount;
+  if(el('statRechnungen')) el('statRechnungen').textContent = rechnungCount;
+  if(el('statChat')) el('statChat').textContent = chatCount;
+  const mins = angebotCount*4 + rechnungCount*3 + chatCount;
+  if(el('statZeit')) el('statZeit').textContent = mins > 59 ? (mins/60).toFixed(1)+'h' : mins+' min';
+}
+
+// ── COPY ──────────────────────────────────────────
+function copyOffer() {
+  const el = document.getElementById('genResult');
+  navigator.clipboard.writeText(el.innerText||'').then(()=>toast('📋 Angebot kopiert!')).catch(()=>toast('❌ Kopieren fehlgeschlagen'));
+}
+function copyInvoice() {
+  const el = document.getElementById('invOut');
+  navigator.clipboard.writeText(el.innerText||'').then(()=>toast('📋 Rechnung kopiert!')).catch(()=>toast('❌ Kopieren fehlgeschlagen'));
+}
+
+// ── TOAST ─────────────────────────────────────────
+function toast(msg) {
+  const el = document.getElementById('toastEl');
+  document.getElementById('toastMsg').textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 3200);
+}
+
+// ── HELPERS ───────────────────────────────────────
+function fmtEur(n) {
+  if(n==null) return '—';
+  return Number(n).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})+'€';
+}
+function esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── INIT ──────────────────────────────────────────
+renderActivity();
+renderCustomers();
+renderChart('dashChart', 85);
+renderChart('finChart', 125);
+calcInv();
+</script>
+</body>
+</html>
