@@ -432,8 +432,8 @@ textarea{resize:vertical;min-height:80px;}
 //  ⚙️  KONFIGURATION — NUR DIESE 2 WERTE ANPASSEN
 //  Supabase URL + Key aus: supabase.com > Settings > API
 // ═══════════════════════════════════════════════════════
-const SUPABASE_URL  = 'https://ijbrblosuzqfohrvvkom.supabase.co';
-const SUPABASE_KEY  = 'sb_publishable_bqCMw4trmXzlCPx39zrorA_ZBmz8blM';
+const SUPABASE_URL  = 'DEINE_SUPABASE_URL_HIER';
+const SUPABASE_KEY  = 'DEIN_SUPABASE_ANON_KEY_HIER';
 // ═══════════════════════════════════════════════════════
 
 const { createClient } = supabase;
@@ -576,9 +576,9 @@ Antworte NUR mit diesem JSON (kein Text, kein Markdown):
 Erstelle 4-6 realistische Positionen mit marktüblichen Preisen fuer ${o || 'Deutschland'}.`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/.netlify/functions/claude', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey, 'anthropic-version': '2023-06-01' },
+      headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
       body: JSON.stringify({ model: 'claude-sonnet-4-5-20250929', max_tokens: 1500, messages: [{ role: 'user', content: prompt }] })
     });
     if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error?.message || 'HTTP ' + res.status); }
